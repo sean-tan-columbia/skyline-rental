@@ -1,0 +1,110 @@
+/*
+    1. Layers can be overlapped;
+*/
+#header-up {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    border-bottom-style: solid;
+    border-bottom-color: #D3D3D3;
+    border-bottom-width: 1px;
+}
+#header-up div {
+    float: left;
+}
+#header-icon {
+    padding-left: 38px;
+    width: 20%;
+}
+#header-icon img {
+    width: 50%;
+}
+#header-menu {
+    /*width: 80%;*/
+    padding-top: 10px;
+}
+#header-menu ul li {
+    display: inline;
+    padding-left: 25px;
+}
+#header-menu ul li a {
+    font-family: "Arial";
+    font-size: 19px;
+    font-weight: bold;
+    color: #6d9eeb;
+    text-decoration: none;
+}
+#body {
+    margin-top: 50px;
+}
+#body div {
+    float: left;
+}
+#body-left {
+    width: 65%;
+    border-right-style: solid;
+    border-right-color: #D3D3D3;
+    border-right-width: 1px;
+    padding-left: 25px;
+    padding-top: 30px;
+}
+#body-left div.body-rental-item {
+    width: 30%;
+    height: 260px;
+    margin: 8px;
+    border-style: solid;
+    border-color: #D3D3D3;
+    border-width: 1px;
+    margin-top:3%;
+}
+#body-left div.body-rental-img {
+    width: 100%;
+    height: 60%;
+}
+#body-left img {
+    width: 100%; /* Control the size of image inside the rectangle */
+    height: 100%;
+    border-bottom-style: solid;
+    border-bottom-color: #D3D3D3;
+    border-bottom-width: 1px;
+}
+#body-left div.body-rental-top {
+    width: 100%;
+    height: 15%;
+    border-bottom-style: solid;
+    border-bottom-color: #D3D3D3;
+    border-bottom-width: 1px;
+    text-align: center;
+}
+#body-left div.body-rental-middle {
+    width: 100%;
+    height: 12%;
+    border-bottom-style: solid;
+    border-bottom-color: #D3D3D3;
+    border-bottom-width: 1px;
+}
+#body-left div.body-rental-bottom {
+    width: 100%;
+    height: 12%;
+}
+#body-left p.body-rental-price {
+    color: green;
+    font-family: "Arial";
+    font-size: 16px;
+    font-weight: bold;
+}
+#body-right {
+
+}
+#footer {
+    position: relative;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    background-color: #efefef;
+    text-align: center;
+}
