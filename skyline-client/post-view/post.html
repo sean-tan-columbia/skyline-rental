@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-touch.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.10.3/TweenMax.min.js"></script>
+    <!--<link href="post.css" rel="stylesheet" type="text/css" >-->
+    <script src="post.js"></script>
+</head>
+<body ng-app="skyline-post">
+    <div id="header">
+        <div id="header-up">
+        <div id="header-icon"><img src="../asset/image/icon.png"></div>
+        <div id="header-menu">
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Discover</a></li>
+                <li><a href="#">Favorites</a></li>
+                <li><a href="#">Login</a></li>
+                <li><a href="#/post">Post</a></li>
+            </ul>
+        </div>
+    </div>
+    </div>
+    <div id="body" ng-controller="imageUploadController">
+        <div id="body-left">
+            <fileread images="[]" files="[]", posterId="{{posterId}}"></fileread>
+        </div>
+    </div>
+</body>
+</html>

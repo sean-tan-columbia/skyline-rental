@@ -1,0 +1,58 @@
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-touch.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.10.3/TweenMax.min.js"></script>
+    <script>
+        var myApp = angular.module('myApp', []);
+        myApp.directive('fileModel', ['$parse', function ($parse) {
+        return {
+            restrict: 'A',
+            link: function(scope, element, attrs) {
+                var model = $parse(attrs.fileModel);
+                var modelSetter = model.assign;
+
+                element.bind('change', function(){
+                    scope.$apply(function(){
+                        modelSetter(scope, element[0].files[0]);
+                    });
+                });
+            }
+        };
+        }]);
+        myApp.service('fileUpload', ['$http', function ($http) {
+        this.uploadFileToUrl = function(file, uploadUrl){
+            var fd = new FormData();
+            fd.append('file', file);
+            $http.post(uploadUrl, fd, {
+                transformRequest: angular.identity,
+                headers: {'Content-Type': undefined}
+            })
+            .success(function(){
+            })
+            .error(function(){
+            });
+        }
+        }]);
+        myApp.controller('myCtrl', ['$scope', 'fileUpload', function($scope, fileUpload){
+            $scope.uploadFile = function(){
+                var file = $scope.myFile;
+                console.log('file is ' );
+                console.dir(file);
+                console.log("Hello")
+                var uploadUrl = "/fileUpload";
+                fileUpload.uploadFileToUrl(file, uploadUrl);
+            };
+        }]);
+
+    </script>
+</head>
+<body>
+        <div ng-controller="myCtrl">
+            <input type="file" file-model="myFile"/>
+            <button ng-click="uploadFile()">upload me</button>
+        </div>
+</body>
