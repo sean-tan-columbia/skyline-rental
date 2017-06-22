@@ -1,7 +1,6 @@
 angular.module('skyline-post', ['ngRoute'])
 
 .controller('imageUploadController', function ($scope) {
-    $scope.posterId = 'jtan';
 })
 
 .directive("fileread", ['$http', '$q', function ($http, $q) {
@@ -12,22 +11,31 @@ angular.module('skyline-post', ['ngRoute'])
         link: function (scope, element, attributes) {
             element.bind('change', function (changeEvent) {
                 var hashids = new Hashids("SKYLINE_IMAGE")
-                var reader_show = new FileReader();
-                reader_show.onload = function(loadEvent) {
-                    scope.$apply(function() {
-                        base64 = loadEvent.target.result
-                        imageId = scope.id + '-' + hashids.encode(Date.now()) + '.' + getImageType(base64)
-                        scope.images.push({'id': imageId, 'base64': base64, 'type': getImageType(base64)});
-                    });
-                }
-                var reader_post = new FileReader();
-                reader_post.onload = function(loadEvent) {
-                    scope.files.push(new Uint8Array(reader_post.result))
+                var reader = new FileReader();
+                reader.onload = function(loadEvent) {
+                    base64 = loadEvent.target.result;
+                    imageType = getImageType(base64);
+                    imageId = scope.id + '-' + hashids.encode(Date.now()) + '.' + imageType;
+
+                    // Compress image / lower the image quality to 30%
+                    var sourceImgObj = new Image();
+                    sourceImgObj.onload = function() {
+                        var cvs = document.createElement('canvas');
+                        cvs.width  = sourceImgObj.width;
+                        cvs.height = sourceImgObj.height;
+                        cvs.getContext('2d').drawImage(sourceImgObj, 0, 0, cvs.width, cvs.height);
+                        var compressedBase64 = cvs.toDataURL('image/' + imageType, 0.3);
+
+                        scope.$apply(function() {
+                            scope.images.push({'id': imageId, 'base64': compressedBase64, 'type': imageType});
+                            scope.files.push(base64ToArrayBuffer(compressedBase64));
+                        });
+                    };
+                    sourceImgObj.src = base64;
                 }
                 if (changeEvent.target.files != null) {
                     // document.getElementById('...').files[0] == changeEvent.target.files[0]
-                    reader_show.readAsDataURL(changeEvent.target.files[0]);
-                    reader_post.readAsArrayBuffer(changeEvent.target.files[0]);
+                    reader.readAsDataURL(changeEvent.target.files[0]);
                 }
             });
             var posterHashids = new Hashids("SKYLINE_POSTER");
@@ -39,7 +47,7 @@ angular.module('skyline-post', ['ngRoute'])
             }
             scope.send = function() {
                 // Upload file to Google Cloud Storage
-                var oauth2 = 'ya29.GlxxBHhM4EPjKyVwxFMvPdtPRBs3g_ru5-p0CfZ8N5C8I9lMdfGbkhTOH6dIYRfhVplDBmh-0OoWUEKIN1pRlCpXMDU19uj40w8tkk9jSmeocU_2Uyf1Xb-Bvkwx9w';
+                var oauth2 = 'ya29.GlxxBJwCupXd06cCZzpLw1dTh-gP8zlg63eTMCp1ulHdd8WA37a1Wm-lBR-_Po5r7yDVFxrF6kVoybJX7dLHJLJVRlwM5_74slf3U2W6QAlfF3hyLfUPzI7hkknRPA';
                 if (scope.images.length != scope.files.length) {
                     throw 'Internal error';
                 }
@@ -108,4 +116,17 @@ var hashCode = function(string) {
         hash |= 0; // Convert to 32bit integer
     }
     return hash;
-}
+};
+
+var base64ToArrayBuffer = function(base64) {
+    var byteString = atob(base64.split(',')[1]);
+    // separate out the mime component
+    var mimeString = base64.split(',')[0].split(':')[1].split(';')[0]
+    // write the bytes of the string to an ArrayBuffer
+    var ab = new ArrayBuffer(byteString.length);
+    var ia = new Uint8Array(ab);
+    for (var i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+    }
+    return ia;
+};
