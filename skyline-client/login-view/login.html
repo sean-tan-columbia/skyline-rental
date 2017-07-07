@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+    <!-- <link href="login.css" rel="stylesheet" type="text/css" > -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-touch.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.10.3/TweenMax.min.js"></script>
+    <script src="login.js"></script>
+</head>
+<body ng-app="skyline-login">
+    <div id="body" ng-controller="loginController">
+        <form>
+            <label for="username">Username</label>
+            <input type="text" id="username" class="span2"
+                   ng-model="username"/>
+            <label for="password">Password</label>
+            <input type="password" id="password" class="span2"
+                   ng-model="password"/>
+            <br><br>
+            <input type="submit" class="btn primary" value="Login"
+                   ng-click="login()"/>
+        </form>
+    </div>
+</body>
