@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+</head>
+<body ng-app="skyline-post">
+    <div id="header">
+        <div id="header-top">
+            <div id="header-menu">
+                <ul>
+                    <li><a href="#/discover">Home</a></li>
+                    <li><a href="#/discover">Discover</a></li>
+                    <li><a href="#">Favorites</a></li>
+                    <li><a href="#">Login</a></li>
+                    <li><a href="#/post">Post</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="post-main" ng-controller="imageUploadController">
+        <div id="post-main-left">
+            <fileread images="[]" files="[]", posterId="{{posterId}}"></fileread>
+        </div>
+    </div>
+</body>
+</html>

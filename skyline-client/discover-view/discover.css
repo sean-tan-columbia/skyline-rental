@@ -1,0 +1,118 @@
+#header {
+    width: 100%;
+}
+#header-top {
+    width: 100%;
+    height: 50px;
+    background-color: #4169E1;
+}
+#header-menu li {
+
+}
+#header-down {
+    width: 100%;
+    height: 60px;
+    border-bottom-style: solid;
+    border-bottom-color: #D3D3D3;
+    border-bottom-width: 2px;
+}
+#main {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+#main div.floating {
+    float: left;
+}
+#main-left {
+    height: 100%;
+    width: 950px;
+}
+#map-container {
+    height: 100%;
+    width: 100%;
+    border-style: solid;
+    border-color: #D3D3D3;
+    border-top-width: 0px;
+    border-left-width: 2px;
+    border-bottom-width: 2px;
+    border-right-width: 2px;
+}
+#main-right {
+    height: 570px;
+    margin-left: 5px;
+}
+#item-scroll {
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x:hidden;
+    padding-right: 10px;
+}
+#item-scroll div.item-container {
+    width: 450px;
+    height: 180px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+    border-color: #D3D3D3;
+    border-style: solid;
+    border-width: 1px;
+}
+#item-scroll div.item-container div.img-container {
+    width: 70%;
+    height: 100%;
+    float: left;
+    background-color: #D3D3D3;
+}
+#item-scroll div.item-container div.img-container img {
+    width: auto;
+    height: 100%;
+    margin: auto;
+    display: block;
+}
+#item-scroll div.item-container div.img-container input.arrow-prev {
+    overflow:hidden;
+    position:relative;
+    z-index: 1;
+    left: 1%;
+    bottom: 100px;
+    opacity: 0.4;
+}
+#item-scroll div.item-container div.img-container input.arrow-next {
+    overflow:hidden;
+    position:relative;
+    z-index: 1;
+    left: 83%;
+    bottom: 100px;
+    opacity: 0.4;
+}
+#item-scroll div.item-container div.text-container {
+    float: left;
+    width: 30%;
+}
+#item-scroll div.item-container div.text-container p.text-price {
+    font-family:verdana;
+    color: green;
+    font-weight:bold;
+    font-size: 24px;
+    height: 10px;
+    align: center;
+}
+#item-scroll div.item-container div.text-container p.text-quantifier {
+    font-family:verdana;
+    color: green;
+    font-weight:bold;
+    font-size: 12px;
+    height: 10px;
+    align: center;
+}
+/* Always set the map height explicitly to define the size of the div
+* element that contains the map. */
+#map {
+    height: 100%;
+}
+/* Optional: Makes the sample page fill the window. */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
