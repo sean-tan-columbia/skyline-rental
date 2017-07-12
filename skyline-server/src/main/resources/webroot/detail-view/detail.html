@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+</head>
+<body ng-app="skyline-detail">
+<div id="header">
+    <div id="header-top">
+        <div id="header-icon">
+            <label>Skyline</label>
+        </div>
+        <div id="header-menu">
+            <ul>
+                <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
+                <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
+                <li><a href="#" style="color:white;opacity:0.9">Favorites</a></li>
+                <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
+                <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
+                <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="body">
+    <div id="body-left" ng-controller="imageSlideController">
+        <div id="body-left-img">
+            <div id="img-slider">
+                <img ng-repeat="slide in slides"
+                     ng-swipe-right="nextSlide()" ng-swipe-left="prevSlide()"
+                     ng-hide="!isCurrentSlideIndex($index)"
+                     ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}">
+                <a class="arrow prev" ng-click="nextSlide()"></a>
+                <a class="arrow next" ng-click="prevSlide()"></a>
+                <nav class="nav">
+                    <div class="wrapper">
+                        <ul class="dots">
+                            <li class="dot" ng-repeat="slide in slides">
+                                <a ng-class="{'active':isCurrentSlideIndex($index)}"
+                                   ng-click="setCurrentSlideIndex($index);"></a>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        <div id="body-left-info"></div>
+        <div id="body-left-desc"></div>
+    </div>
+    <div id="body-right">
+    </div>
+</div>
+</body>
+</html>

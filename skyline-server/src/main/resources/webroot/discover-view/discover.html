@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Skyline: New York Rental for Students</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-touch.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.10.3/TweenMax.min.js"></script>
+</head>
+<body ng-app="skyline-discover">
+    <div id="header">
+        <div id="header-top">
+            <div id="header-icon">
+                <label>Skyline</label>
+            </div>
+            <div id="header-search">
+
+            </div>
+            <div id="header-menu">
+                <ul>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
+                    <li><a href="#" style="color:white;opacity:0.9">Favorites</a></li>
+                    <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
+                    <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
+                    <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="header-down">
+            <div style="float:left;display:inline;">
+                <md-datepicker ng-model="startDate" md-placeholder="Start Date"></md-datepicker>
+                <md-datepicker ng-model="endDate" md-placeholder="End Date"></md-datepicker>
+            </div>
+            <div style="float:left;display:inline;margin-left:20px;">
+                <label class="price-label">From $</label>
+                <input class="price-input" type="text" placeholder="Min">
+                <label class="price-label">to $</label>
+                <input class="price-input" type="text" placeholder="Max">
+            </div>
+            <div style="float:left;display:inline;margin-left:20px;margin-top:5px;">
+                <label class="br-label">Bathrooms</label>
+                <select class="br-select" ng-model="num_bathroom" ng-options="o for o in ['Shared','1','2']"></select>
+            </div>
+            <div style="float:left;display:inline;margin-left:25px;margin-top:2px;">
+                <input type="submit" id="submit-search" value="Search" ng-click=""/>
+            </div>
+        </div>
+    </div>
+    <div id="main" ng-controller="rentalDiscoverController">
+        <mainContainer>
+        <div id="main-left" class="floating">
+            <div id="map-container">
+                <ng-map id="ng-map"
+                        style="height:100%"
+                        center="40.785,-73.968"
+                        zoom="12"
+                        default-style="false"
+                        on-click="closeAllCustomMarker()">
+                    <marker ng-repeat="r in rentals"
+                            position="{{r.latitude}},{{r.longitude}}"
+                            on-click="showCustomMarker($index)"
+                            icon="{{markerIcons[$index]}}">
+                    </marker>
+                    <custom-marker  id="{{$index}}"
+                                    ng-repeat="r in rentals"
+                                    position="{{r.latitude}},{{r.longitude}}"
+                                    on-click="closeCustomMarker($index)"
+                                    ng-if="customMarkerShown[$index]">
+                        <div class="custom-marker-container">
+                              <img ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{r.imageIds[0]}}">
+                        </div>
+                    </custom-marker>
+                </ng-map>
+            </div>
+        </div>
+        <div id="main-right" class="floating">
+            <div id="item-scroll">
+                <div  class="item-container"
+                      ng-repeat="rental in rentals"
+                      ng-init="rental_index=$index"
+                      ng-mouseenter="toggleMarkerColor($index)"
+                      ng-mouseleave="toggleMarkerColor($index)">
+                    <div class="img-container">
+                        <a target="_self" ng-href="#/detail/{{rental.id}}">
+                            <img ng-repeat="slide in rental.imageIds" ng-init="slide_index=$index" ng-hide="!isCurrentSlideIndex(rental_index, slide_index)" ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}">
+                        </a>
+                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_24.png" ng-click="prevSlide(rental_index)">
+                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_24.png" ng-click="nextSlide(rental_index)">
+                    </div>
+                    <div class="text-container">
+                        <p class="text-price">${{rental.price}}</p>
+                        <p class="text-quantifier">per {{rental.quantifier}}</p>
+                    </div>
+                </div>
+            </div>
+            <div id="navi">
+                <ul>
+                    <li class="prev"><a ng-click="prevPages()"><span>Prev</span></a></li>
+                    <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}" >
+                        <a ng-click="selectPage(page)" >{{page}}</a>
+                    </li>
+                    <li class="next"><a ng-click="nextPages()"><span>Next</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+#header {
+    width: 100%;
+}
+#header-top {
+    width: 100%;
+    height: 50px;
+    background-color: #4169E1;
+}
+#header-icon {
+    float: left;
+    margin-left: 0px;
+    margin-top: 10px;
+}
+#header-icon label {
+    margin-left: 0px;
+    padding-left: 0px;
+    font-size: 30px;
+    color: white;
+}
+#header-search {
+    float: left;
+}
+#header-menu ul {
+    margin-top: 10px;
+    float: left;
+}
+#register-form {
+    width: 25%;
+    height: 300px;
+    margin: 100px auto;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #D3D3D3;
+    border-radius: 4px;
+    text-align: center;
+    padding-top: 20px;
+    display: block;
+}
+#register-title {
+    font-weight: bold;
+    font-size: 24px;
+    font-family: verdana;
+}
+#register-form input.text {
+    width: 80%;
+    height: 30px;
+    border-width: 1px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: verdana;
+    display: inline-block;
+    padding-left: 5px;
+}
+#register-form label.register-label {
+    text-align: left;
+    width: 80%;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 14px;
+    font-family: verdana;
+}
+#register-submit {
+    width: 40%;
+    height: 50px;
+    background-color: #4169E1;
+    border: 2px solid #4169E1;
+    border-radius: 4px;
+    margin-top: 50px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: verdana;
+    color: white;
+    opacity: 0.9;
+}
+#register-submit:hover {
+    background-color: #4169E1;
+    opacity: 1.0;
+}

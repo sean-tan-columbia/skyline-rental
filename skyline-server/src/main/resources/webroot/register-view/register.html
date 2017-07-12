@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+</head>
+<body ng-app="skyline-login">
+    <div id="header">
+      <div id="header-top">
+          <div id="header-icon">
+              <label>Skyline</label>
+          </div>
+          <div id="header-search">
+
+          </div>
+          <div id="header-menu">
+              <ul>
+                  <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
+                  <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
+                  <li><a href="#" style="color:white;opacity:0.9">Favorites</a></li>
+                  <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
+                  <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
+                  <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+              </ul>
+          </div>
+      </div>
+    </div>
+    <div id="body" ng-controller="registerController">
+      <form id="register-form">
+          <h id="register-title">Sign Up</h>
+          <br></br>
+          <label class="register-label" for="email">Email (id.school.edu)</label>
+          <input type="text" class="text" id="email" class="span2" ng-model="email"/>
+          <br></br>
+          <label class="register-label" for="username">Username</label>
+          <input type="text" class="text" id="username" class="span2" ng-model="username"/>
+          <br></br>
+          <label class="register-label" for="password">Password</label>
+          <input type="password" class="text" id="password" class="span2"
+                ng-model="password"/>
+          <br><br>
+          <input type="submit" id="register-submit" value="Submit"
+                 ng-click="register()"/>
+      </form>
+    </div>
+</body>
