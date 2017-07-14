@@ -10,7 +10,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
     $http.get(config.serverUrl + "/discover").then(function(r1) {
-        console.log(r1.data);
         rentalIds = r1.data;
         $scope.rentalIds = r1.data;
         $scope.pageSize = 5;
@@ -79,9 +78,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         console.log($scope.selectedRentalIds);
     }
     NgMap.getMap('ng-map').then(function(map) {
-        document.getElementById('main-left').style.height = window.innerHeight - 110 + 'px';
-        document.getElementById('main-left').style.width = window.innerWidth - 530 + 'px';
-        google.maps.event.trigger(map, 'resize');
+        // google.maps.event.trigger(map, 'resize');
         $scope.showCustomMarker = function(evt, markerId) {
             $scope.$apply(function(){
                 $scope.closeAllCustomMarker();
@@ -107,7 +104,4 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             }
         }
     });
-    $scope.mapCenter = [40.785,-73.968];
-    $scope.mapWidth  = $window.innerWidth - 530;
-    $scope.mapHeight = $window.innerHeight - 120;
 });
