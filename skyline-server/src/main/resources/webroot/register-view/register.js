@@ -5,7 +5,7 @@ angular.module('skyline-register', ['ngRoute'])
         data = {username: $scope.username, password: $scope.password, email: $scope.email}
         console.log(data);
         $http({ method: 'POST',
-                             url: config.serverUrl + '/register',
+                             url: config.serverUrl + '/api/public/register',
                              data: data})
                      .then(function successCallback(response) {
                          $window.location.href = '/';

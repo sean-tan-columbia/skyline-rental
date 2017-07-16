@@ -9,7 +9,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.currentSlideIndices = [];
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
-    $http.get(config.serverUrl + "/discover").then(function(r1) {
+    $http.get(config.serverUrl + "/api/public/discover").then(function(r1) {
         rentalIds = r1.data;
         $scope.rentalIds = r1.data;
         $scope.pageSize = 5;
@@ -63,7 +63,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
         for (i = 0; i < $scope.selectedRentalIds.length; i++) {
-            $http.get(config.serverUrl + "/rental/" + $scope.selectedRentalIds[i])
+            $http.get(config.serverUrl + "/api/public/rental/" + $scope.selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
                 rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");

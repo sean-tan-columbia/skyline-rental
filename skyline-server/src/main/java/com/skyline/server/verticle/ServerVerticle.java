@@ -86,17 +86,19 @@ public class ServerVerticle extends AbstractVerticle {
         router.route().handler(CookieHandler.create());
         router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
         router.route().handler(UserSessionHandler.create(authProvider));
-        router.route("/login").handler(BodyHandler.create());
-        router.post("/login").handler(userAuthHandler::authenticate);
-        router.route("/register").handler(BodyHandler.create());
-        router.post("/register").handler(userAuthHandler::register);
-        router.get("/gcstoken").handler(gcsAuthHandler::getAccessToken);
+        router.route("/api/public/login").handler(BodyHandler.create());
+        router.post("/api/public/login").handler(userAuthHandler::authenticate);
+        router.route("/api/public/register").handler(BodyHandler.create());
+        router.post("/api/public/register").handler(userAuthHandler::register);
+
+        router.route("/api/private/*").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));
+        router.get("/api/private/gcstoken").handler(gcsAuthHandler::getAccessToken);
 
         // Main logic
-        router.route("/rental").handler(BodyHandler.create());
-        router.post("/rental").handler(rentalHandler::put);
-        router.get("/rental/:rentalId").handler(rentalHandler::get);
-        router.get("/discover").handler(rentalHandler::getMax);
+        router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
+        router.get("/api/public/discover").handler(rentalHandler::getMax);
+        router.route("/api/private/rental").handler(BodyHandler.create());
+        router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions
         router.route("/post-view/post.html").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));

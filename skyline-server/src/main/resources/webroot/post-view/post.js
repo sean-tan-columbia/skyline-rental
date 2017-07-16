@@ -47,7 +47,7 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
             }
             scope.getAccessToken = function(callback) {
                 $http({ method: 'GET',
-                        url: config.serverUrl + '/gcstoken',
+                        url: config.serverUrl + '/api/private/gcstoken',
                 })
                 .then(function(response) {
                     console.log(response.data)
@@ -104,7 +104,7 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
                 };
                 console.log(data);
                 $http({ method: 'POST',
-                        url: config.serverUrl + '/rental',
+                        url: config.serverUrl + '/api/private/rental',
                         data: data
                 })
                 .then(function(response) {
