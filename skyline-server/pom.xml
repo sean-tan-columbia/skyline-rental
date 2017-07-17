@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.skyline</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>skyine-server</artifactId>
     <version>0.1.0</version>
 
     <dependencies>
@@ -91,7 +91,7 @@
                         <goals>
                             <goal>shade</goal>
                         </goals>
-			<configuration>
+			            <configuration>
                                 <transformers>
                                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                                 <mainClass>com.skyline.server.verticle.MainVerticle</mainClass>

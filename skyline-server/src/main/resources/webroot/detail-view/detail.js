@@ -1,7 +1,7 @@
 angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
 
 .controller('imageSlideController', function ($scope, $http, $routeParams, config) {
-    $http.get(config.serverUrl + "/rental/" + $routeParams.rentalId)
+    $http.get(config.serverUrl + "/api/public/rental/" + $routeParams.rentalId)
     .then(function(response) {
         console.log($routeParams.rentalId)
         rentalObj = response.data
@@ -34,7 +34,6 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     return {
         beforeAddClass: function (element, className, done) {
             var scope = element.scope();
-
             if (className == 'ng-hide') {
                 var finishPoint = element.parent().width();
                 if(scope.direction !== 'right') {
