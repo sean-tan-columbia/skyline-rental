@@ -55,12 +55,9 @@ public class ServerVerticle extends AbstractVerticle {
         this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
 
         Router router = createRouter();
-//        HttpServer server = vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
-//            new JksOptions()
-//                    .setPath("/Users/jtan/IdeaProjects/Skyline/skyline-rental/skyline-server/skyline-server-dev.jks")
-//                    .setPassword("skyline")
-//        ));
-//        server.requestHandler(router::accept).listen(8443);
+//        vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
+//            new JksOptions().setPath("server-keystore.jks").setPassword("skyline")
+//        )).requestHandler(router::accept).listen(8443);
 
         vertx.createHttpServer()
                 .requestHandler(router::accept)
