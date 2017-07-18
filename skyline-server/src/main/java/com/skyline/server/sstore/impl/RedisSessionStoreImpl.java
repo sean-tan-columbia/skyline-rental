@@ -34,17 +34,14 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     }
 
     public Session createSession(long timeout) {
-        System.out.println("create");
         return new SessionImpl(this.random, timeout, 16);
     }
 
     public Session createSession(long timeout, int length) {
-        System.out.println("create");
         return new SessionImpl(this.random, timeout, length);
     }
 
     public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-        System.out.println("get:" + id);
         redisClient.getBinary(sessionKeyBase + id, res -> {
             if (res.succeeded()) {
                 Buffer buff = res.result();
@@ -62,7 +59,6 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     }
 
     public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-        System.out.println("del:" + id);
         redisClient.del(sessionKeyBase + id, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(Boolean.valueOf(res.result() != null)));
@@ -73,7 +69,6 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     }
 
     public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
-        System.out.println("put:" + session.id());
         redisClient.getBinary(sessionKeyBase + session.id(), (old) -> {
             SessionImpl newSession = (SessionImpl) session;
             SessionImpl oldSession;
@@ -105,7 +100,6 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     }
 
     public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
-        System.out.println("clear");
         redisClient.keys(sessionKeyBase + "*", res -> {
             if (res.succeeded()) {
                 redisClient.delMany(res.result().stream().map(Object::toString).collect(Collectors.toList()), res2 -> {
@@ -122,7 +116,6 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     }
 
     public void size(Handler<AsyncResult<Integer>> resultHandler) {
-        System.out.println("size");
         redisClient.keys(sessionKeyBase + "*", res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(res.result().size()));

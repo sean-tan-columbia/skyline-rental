@@ -4,6 +4,7 @@ import com.skyline.server.Config;
 import com.skyline.server.handler.GCSAuthHandler;
 import com.skyline.server.handler.UserAuthHandler;
 import com.skyline.server.handler.RentalHandler;
+import com.skyline.server.sstore.RedisSessionStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServer;
@@ -34,6 +35,7 @@ public class ServerVerticle extends AbstractVerticle {
     private JDBCAuth authProvider;
     private UserAuthHandler userAuthHandler;
     private GCSAuthHandler gcsAuthHandler;
+    private RedisClient redisClient;
 
     @Override
     public void start(Future<Void> future) throws Exception {
@@ -42,7 +44,7 @@ public class ServerVerticle extends AbstractVerticle {
         RedisOptions redisConfig = new RedisOptions()
                 .setHost(config.getRedisHost())
                 .setAuth(config.getRedisAuth());
-        RedisClient redisClient = RedisClient.create(vertx, redisConfig);
+        this.redisClient = RedisClient.create(vertx, redisConfig);
         this.rentalHandler = new RentalHandler(redisClient);
 
         this.jdbcClient = JDBCClient.createShared(vertx, new JsonObject()
@@ -83,23 +85,26 @@ public class ServerVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
         // Auth logic
         router.route().handler(CookieHandler.create());
-        router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-        router.route().handler(UserSessionHandler.create(authProvider));
-        router.route("/api/public/login").handler(BodyHandler.create());
+        router.route().handler(BodyHandler.create());
+
+        router.route("/api/public/login").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
+        router.route("/api/public/login").handler(UserSessionHandler.create(authProvider));
         router.post("/api/public/login").handler(userAuthHandler::authenticate);
-        router.route("/api/public/register").handler(BodyHandler.create());
         router.post("/api/public/register").handler(userAuthHandler::register);
 
+        router.route("/api/private/*").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
+        router.route("/api/private/*").handler(UserSessionHandler.create(authProvider));
         router.route("/api/private/*").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));
         router.get("/api/private/gcstoken").handler(gcsAuthHandler::getAccessToken);
 
         // Main logic
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
         router.get("/api/public/discover").handler(rentalHandler::getMax);
-        router.route("/api/private/rental").handler(BodyHandler.create());
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions
+        router.route("/post-view/post.html").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
+        router.route("/post-view/post.html").handler(UserSessionHandler.create(authProvider));
         router.route("/post-view/post.html").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 
