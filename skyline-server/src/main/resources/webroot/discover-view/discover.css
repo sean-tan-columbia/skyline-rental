@@ -99,17 +99,13 @@
     width: 500px;
 }
 #item-scroll {
-    /* height: 100%; */
     height: calc(100vh - 185px);
     overflow-y: scroll;
     overflow-x:hidden;
-    padding-right: 0px;
-    border-right-color: #D3D3D3;
-    border-right-style: solid;
-    border-right-width: 1px;
+    /* padding-right: 0px; */
 }
 #item-scroll div.item-container {
-    width: 100%;
+    width: auto;
     height: 180px;
     margin-left: 10px;
     margin-bottom: 10px;
@@ -136,7 +132,7 @@
     overflow:hidden;
     position:relative;
     z-index: 1;
-    left: 1%;
+    left: 0;
     bottom: 100px;
     opacity: 0.4;
 }
@@ -144,7 +140,7 @@
     overflow:hidden;
     position:relative;
     z-index: 1;
-    left: 83%;
+    left: 85%;
     bottom: 100px;
     opacity: 0.4;
 }
