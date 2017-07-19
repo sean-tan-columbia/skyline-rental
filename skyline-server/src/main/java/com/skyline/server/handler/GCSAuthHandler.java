@@ -93,7 +93,6 @@ public class GCSAuthHandler {
     public void getAccessToken(RoutingContext context) {
         redisClient.exists(GCS_TOKEN_KEY, e -> {
             if (e.succeeded() && e.result() > 0) {
-                System.out.println("Access token exist, return it");
                 redisClient.hmget(GCS_TOKEN_KEY, Arrays.asList("accessToken"), r -> {
                     context.response()
                             .putHeader("content-type", "application/json")
