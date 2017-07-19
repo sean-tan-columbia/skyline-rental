@@ -21,7 +21,8 @@ public class Config {
     private final String googleApiScope;
     private final String googleApiCredPath;
     private final Long googleApiTokenTTL;
-
+    private final Long sessionRetryTimeout;
+    private final Long sessionTimeout;
 
     public static Config getInstance() throws IOException {
         if (instance == null) {
@@ -45,6 +46,8 @@ public class Config {
         this.googleApiScope = properties.getProperty("auth.googleapi.client.scope");
         this.googleApiCredPath = properties.getProperty("auth.googleapi.cred.path");
         this.googleApiTokenTTL = Long.parseLong(properties.getProperty("auth.googleapi.token.ttl"));
+        this.sessionTimeout = Long.parseLong(properties.getProperty("server.session.timeout"));
+        this.sessionRetryTimeout = Long.parseLong(properties.getProperty("server.session.retry.timeout"));
     }
 
     public String getRedisHost() {
@@ -93,5 +96,13 @@ public class Config {
 
     public Long getGoogleApiTokenTTL() {
         return googleApiTokenTTL;
+    }
+
+    public Long getSessionRetryTimeout() {
+        return sessionRetryTimeout;
+    }
+
+    public Long getSessionTimeout() {
+        return sessionTimeout;
     }
 }

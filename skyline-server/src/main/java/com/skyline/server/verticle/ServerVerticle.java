@@ -57,8 +57,7 @@ public class ServerVerticle extends AbstractVerticle {
         this.jdbcAuthProvider = createJdbcAuthProvider();
         this.userAuthHandler = new UserAuthHandler(this.jdbcAuthProvider, this.jdbcClient);
         this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
-        this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient)).setSessionTimeout(900000L);
-        // this.sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
+        this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
 
@@ -69,7 +68,7 @@ public class ServerVerticle extends AbstractVerticle {
 
         vertx.createHttpServer()
                 .requestHandler(router::accept)
-                .listen(8080,
+                .listen(8081,
                         result -> {
                             if (result.succeeded()) {
                                 future.complete();
