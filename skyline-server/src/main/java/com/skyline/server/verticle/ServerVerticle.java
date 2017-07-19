@@ -27,8 +27,8 @@ import io.vertx.redis.RedisOptions;
  */
 public class ServerVerticle extends AbstractVerticle {
 
-//    private final String WEB_ROOT = "../../../../skyline-client"; // intellij-baseDir: src/main
-//    private final String WEB_ROOT = "../../../skyline-client";
+    //private final String WEB_ROOT = "../../../../skyline-client"; // intellij-baseDir: src/main
+    //private final String WEB_ROOT = "../../../skyline-client";
     private final static Logger LOG = LoggerFactory.getLogger(ServerVerticle.class);
     private JDBCClient jdbcClient;
     private RentalHandler rentalHandler;
@@ -36,15 +36,17 @@ public class ServerVerticle extends AbstractVerticle {
     private UserAuthHandler userAuthHandler;
     private GCSAuthHandler gcsAuthHandler;
     private RedisClient redisClient;
+    private SessionHandler sessionHandler;
+    private UserSessionHandler userSessionHandler;
+    private AuthHandler redirectAuthHandler;
 
     @Override
     public void start(Future<Void> future) throws Exception {
 
         Config config = Config.getInstance();
-        RedisOptions redisConfig = new RedisOptions()
+        this.redisClient = RedisClient.create(vertx, new RedisOptions()
                 .setHost(config.getRedisHost())
-                .setAuth(config.getRedisAuth());
-        this.redisClient = RedisClient.create(vertx, redisConfig);
+                .setAuth(config.getRedisAuth()));
         this.rentalHandler = new RentalHandler(redisClient);
 
         this.jdbcClient = JDBCClient.createShared(vertx, new JsonObject()
@@ -55,11 +57,15 @@ public class ServerVerticle extends AbstractVerticle {
         this.authProvider = createAuthProvider();
         this.userAuthHandler = new UserAuthHandler(this.authProvider, this.jdbcClient);
         this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
+        this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient)).setSessionTimeout(900000L);
+        // this.sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
+        this.userSessionHandler = UserSessionHandler.create(authProvider);
+        this.redirectAuthHandler = RedirectAuthHandler.create(authProvider, "/login-view/login.html");
 
         Router router = createRouter();
-//        vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
-//            new JksOptions().setPath("server-keystore.jks").setPassword("skyline")
-//        )).requestHandler(router::accept).listen(8443);
+        // vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
+        //     new JksOptions().setPath("server-keystore.jks").setPassword("skyline")
+        // )).requestHandler(router::accept).listen(8443);
 
         vertx.createHttpServer()
                 .requestHandler(router::accept)
@@ -87,14 +93,14 @@ public class ServerVerticle extends AbstractVerticle {
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
 
-        router.route("/api/public/login").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
-        router.route("/api/public/login").handler(UserSessionHandler.create(authProvider));
+        router.route("/api/public/login").handler(sessionHandler);
+        router.route("/api/public/login").handler(userSessionHandler);
         router.post("/api/public/login").handler(userAuthHandler::authenticate);
         router.post("/api/public/register").handler(userAuthHandler::register);
 
-        router.route("/api/private/*").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
-        router.route("/api/private/*").handler(UserSessionHandler.create(authProvider));
-        router.route("/api/private/*").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));
+        router.route("/api/private/*").handler(sessionHandler);
+        // router.route("/api/private/*").handler(userSessionHandler);
+        router.route("/api/private/*").handler(redirectAuthHandler);
         router.get("/api/private/gcstoken").handler(gcsAuthHandler::getAccessToken);
 
         // Main logic
@@ -103,9 +109,9 @@ public class ServerVerticle extends AbstractVerticle {
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions
-        router.route("/post-view/post.html").handler(SessionHandler.create(RedisSessionStore.create(vertx, redisClient)));
-        router.route("/post-view/post.html").handler(UserSessionHandler.create(authProvider));
-        router.route("/post-view/post.html").handler(RedirectAuthHandler.create(authProvider, "/login-view/login.html"));
+        router.route("/post-view/post.html").handler(sessionHandler);
+        router.route("/post-view/post.html").handler(userSessionHandler);
+        router.route("/post-view/post.html").handler(redirectAuthHandler);
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 
         return router;
