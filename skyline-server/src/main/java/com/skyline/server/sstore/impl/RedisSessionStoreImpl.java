@@ -61,7 +61,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
     public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
         redisClient.del(sessionKeyBase + id, res -> {
             if (res.succeeded()) {
-                resultHandler.handle(Future.succeededFuture(Boolean.valueOf(res.result() != null)));
+                resultHandler.handle(Future.succeededFuture(res.result() == 1L));
             } else {
                 resultHandler.handle(Future.failedFuture(res.cause()));
             }
@@ -88,8 +88,12 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
                 ((SessionImpl) session).writeToBuffer(buff);
                 redisClient.setBinary(sessionKeyBase + session.id(), buff, res -> {
                     if (res.succeeded()) {
-                        redisClient.expire(sessionKeyBase + session.id(), session.timeout(), res2 -> {
-                            resultHandler.handle(Future.succeededFuture(Boolean.valueOf(res2.result() != null)));
+                        redisClient.expire(sessionKeyBase + session.id(), session.timeout() / 1000, res2 -> {
+                            if (res2.succeeded()) {
+                                resultHandler.handle(Future.succeededFuture(res2.result() == 1L));
+                            } else {
+                                resultHandler.handle(Future.failedFuture(res2.cause()));
+                            }
                         });
                     } else {
                         resultHandler.handle(Future.failedFuture(res.cause()));
@@ -104,7 +108,7 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
             if (res.succeeded()) {
                 redisClient.delMany(res.result().stream().map(Object::toString).collect(Collectors.toList()), res2 -> {
                     if (res2.succeeded()) {
-                        resultHandler.handle(Future.succeededFuture(Boolean.valueOf(res2.result() != null)));
+                        resultHandler.handle(Future.succeededFuture(res2.result() == 1L));
                     } else {
                         resultHandler.handle(Future.failedFuture(res2.cause()));
                     }
