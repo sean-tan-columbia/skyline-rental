@@ -68,7 +68,7 @@ public class ServerVerticle extends AbstractVerticle {
 
         vertx.createHttpServer()
                 .requestHandler(router::accept)
-                .listen(8081,
+                .listen(8080,
                         result -> {
                             if (result.succeeded()) {
                                 future.complete();
