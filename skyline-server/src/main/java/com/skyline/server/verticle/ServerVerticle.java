@@ -32,7 +32,7 @@ public class ServerVerticle extends AbstractVerticle {
     private final static Logger LOG = LoggerFactory.getLogger(ServerVerticle.class);
     private JDBCClient jdbcClient;
     private RentalHandler rentalHandler;
-    private JDBCAuth authProvider;
+    private JDBCAuth jdbcAuthProvider;
     private UserAuthHandler userAuthHandler;
     private GCSAuthHandler gcsAuthHandler;
     private RedisClient redisClient;
@@ -50,17 +50,17 @@ public class ServerVerticle extends AbstractVerticle {
         this.rentalHandler = new RentalHandler(redisClient);
 
         this.jdbcClient = JDBCClient.createShared(vertx, new JsonObject()
-                .put("url", "jdbc:postgresql://104.196.206.124:5432/dev")
+                .put("url", "jdbc:postgresql://" + config.getPostgresHost() + "/" + config.getPostgresName())
                 .put("user", config.getPostgresUser())
                 .put("password", config.getPostgresAuth())
                 .put("driver_class", config.getPostgresDriver()));
-        this.authProvider = createAuthProvider();
-        this.userAuthHandler = new UserAuthHandler(this.authProvider, this.jdbcClient);
+        this.jdbcAuthProvider = createJdbcAuthProvider();
+        this.userAuthHandler = new UserAuthHandler(this.jdbcAuthProvider, this.jdbcClient);
         this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient)).setSessionTimeout(900000L);
         // this.sessionHandler = SessionHandler.create(LocalSessionStore.create(vertx));
-        this.userSessionHandler = UserSessionHandler.create(authProvider);
-        this.redirectAuthHandler = RedirectAuthHandler.create(authProvider, "/login-view/login.html");
+        this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
+        this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
 
         Router router = createRouter();
         // vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
@@ -80,11 +80,11 @@ public class ServerVerticle extends AbstractVerticle {
                 );
     }
 
-    private JDBCAuth createAuthProvider() {
-        JDBCAuth authHandler = JDBCAuth.create(vertx, this.jdbcClient);
-        authHandler.setAuthenticationQuery("SELECT PASSWORD, PASSWORD_SALT FROM eventbus.USERS WHERE ID = ?");
-        authHandler.setNonces(new JsonArray().add("KuMLwD0j1rB1yx0iOc").add("uDcCj0SkINwqOzxxGI"));
-        return authHandler;
+    private JDBCAuth createJdbcAuthProvider() {
+        JDBCAuth authProvider = JDBCAuth.create(vertx, this.jdbcClient);
+        authProvider.setAuthenticationQuery("SELECT PASSWORD, PASSWORD_SALT FROM eventbus.USERS WHERE ID = ?");
+        authProvider.setNonces(new JsonArray().add("KuMLwD0j1rB1yx0iOc").add("uDcCj0SkINwqOzxxGI"));
+        return authProvider;
     }
 
     private Router createRouter() {
