@@ -10,6 +10,7 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         $scope.rental = rentalObj
         $scope.slides = rentalObj.imageIds
         $scope.parseAddress();
+        $scope.parseDate();
     });
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
@@ -41,7 +42,11 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         if (_address.length > 1) {
             $scope.short_address = $scope.short_address + ", " + _address[1];
         }
-        console.log($scope.short_address);
+    };
+    $scope.parseDate = function () {
+        var _date = new Date(parseInt($scope.rental.startDate));
+        $scope.moveInDate = _date.getMonth() + "/" + _date.getDate() + "/" + _date.getFullYear();
+        console.log($scope.moveInDate);
     };
 })
 .animation('.slide-animation', function () {
