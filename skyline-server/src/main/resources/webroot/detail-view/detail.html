@@ -46,13 +46,14 @@
         </div>
         <div id="body-left-info">
             <div class="info-left">
-                <div class="info-left-address">{{rental.address}}</div>
+                <div class="info-left-address">{{short_address}}</div>
                 <br>
                 <div style="margin-top: 15px; font-size: 15px;">Move-In: 07/01/2017</div>
                 <div style="margin-top: 15px; margin-left: 50px; font-size: 15px; color: grey">Posted 15min ago</div>
             </div>
             <div class="info-right">
-                ${{rental.price}}
+                <div>${{rental.price}}</div>
+                <div style="font-size: 12px;margin-top: 30px;margin-left: 3px;">/ {{rental.quantifier}}</div>
             </div>
         </div>
         <div id="body-left-feature">

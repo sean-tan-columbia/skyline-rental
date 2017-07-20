@@ -33,8 +33,15 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     };
     $scope.parseAddress = function () {
         var _address = $scope.rental.address.split(", ");
-        $scope.r_street = _address[0]
-        $scope.r_city = _address[1] + ", " + _address[2]
+        console.log(_address);
+        $scope.short_address = "";
+        if (_address.length > 0) {
+            $scope.short_address = $scope.short_address + _address[0];
+        }
+        if (_address.length > 1) {
+            $scope.short_address = $scope.short_address + ", " + _address[1];
+        }
+        console.log($scope.short_address);
     };
 })
 .animation('.slide-animation', function () {
@@ -69,6 +76,3 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         }
     };
 });
-function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
