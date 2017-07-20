@@ -5,9 +5,11 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     .then(function(response) {
         console.log($routeParams.rentalId)
         rentalObj = response.data
+        rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
         $scope.rental = rentalObj
         $scope.slides = rentalObj.imageIds
+        $scope.parseAddress();
     });
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
@@ -28,6 +30,11 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     $scope.nextSlide = function () {
         $scope.direction = 'right';
         $scope.currentIndex = ($scope.currentIndex > 0) ? --$scope.currentIndex : $scope.slides.length - 1;
+    };
+    $scope.parseAddress = function () {
+        var _address = $scope.rental.address.split(", ");
+        $scope.r_street = _address[0]
+        $scope.r_city = _address[1] + ", " + _address[2]
     };
 })
 .animation('.slide-animation', function () {
@@ -62,3 +69,6 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         }
     };
 });
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}

@@ -45,9 +45,43 @@
             </div>
         </div>
         <div id="body-left-info">
-            <br>Start Date:
+            <div class="info-left">
+                <div class="info-left-address">{{rental.address}}</div>
+                <br>
+                <div style="margin-top: 15px; font-size: 15px;">Move-In: 07/01/2017</div>
+                <div style="margin-top: 15px; margin-left: 50px; font-size: 15px; color: grey">Posted 15min ago</div>
+            </div>
+            <div class="info-right">
+                ${{rental.price}}
+            </div>
         </div>
-        <div id="body-left-desc"></div>
+        <div id="body-left-feature">
+            <div class="feature-list">
+                <div class="feature-item">
+                    <img src="../asset/image/bed.png">
+                    <div class="feature-text">
+                        <div style="float: left">1</div>
+                        <div style="color: grey; margin-left: 5px;">Bed</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <img src="../asset/image/bathtub.png">
+                    <div class="feature-text">
+                        <div style="float: left">1</div>
+                        <div style="color: grey; margin-left: 5px;">Bath</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="body-left-description">
+            <div class="description-title">
+                Description:
+            </div>
+            <br>
+            <div class="description-content">
+                {{rental.description}}
+            </div>
+        </div>
     </div>
     <div id="body-right">
     </div>
