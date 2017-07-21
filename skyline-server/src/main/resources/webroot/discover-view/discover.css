@@ -171,22 +171,32 @@
     margin-top: 20px;
     float: left;
 }
+#item-scroll div.item-container div.content-container div.upper-container div.button-selections {
+    float: left;
+    text-align: right;
+}
+#item-scroll div.item-container div.content-container div.upper-container div.button-selections a.button-like {
+    margin-left: 50px;
+    cursor: pointer;
+}
+
 #item-scroll div.item-container div.content-container div.feature-container {
     margin-left: 10px;
     margin-top: 10px;
 }
 #item-scroll div.item-container div.content-container div.feature-container div.feature-content {
+
 }
 #item-scroll div.item-container div.content-container div.feature-container div.feature-content div.feature-number {
     float: left;
-    font-size: 18px;
+    font-size: 16px;
     color: black;
     margin-right: 5px;
     font-family: Arial;
 }
 #item-scroll div.item-container div.content-container div.feature-container div.feature-content div.feature-type {
     float: left;
-    font-size: 18px;
+    font-size: 16px;
     color: grey;
     font-family: Arial;
     margin-right: 10px;
@@ -200,7 +210,7 @@
 }
 #item-scroll div.item-container div.content-container div.time-container {
     margin-top: 35px;
-    margin-left: 10px;
+    margin-left: 30px;
     font-size: 16px;
     text-align: right;
     float: left;

@@ -23,7 +23,6 @@
                 <ul>
                     <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
                     <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
-                    <li><a href="#" style="color:white;opacity:0.9">Favorites</a></li>
                     <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
                     <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
                     <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
@@ -43,7 +42,7 @@
             </div>
             <div style="float:left;display:inline;margin-left:20px;margin-top:5px;">
                 <label class="br-label">Bathrooms</label>
-                <select class="br-select" ng-model="num_bathroom" ng-options="o for o in ['Shared','1','2']"></select>
+                <select class="br-select" ng-model="num_bathroom" ng-options="o for o in ['1/2','1','2']"></select>
             </div>
             <div style="float:left;display:inline;margin-left:25px;margin-top:2px;">
                 <input type="submit" id="submit-search" value="Search" ng-click=""/>
@@ -94,6 +93,11 @@
                         <div class="upper-container">
                             <div class="text-price">${{rental.price}}</div>
                             <div class="text-quantifier">/ {{rental.quantifier}}</div>
+                            <div class="button-selections">
+                                <a class="button-like" ng-click="toggleLikeUnlike($index)">
+                                    <img ng-src="{{rental.likedImg}}">
+                                </a>
+                            </div>
                         </div>
                         <div class="feature-container">
                             <div class="feature-content">

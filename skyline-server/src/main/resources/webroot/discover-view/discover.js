@@ -1,6 +1,6 @@
-angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessages'])
+angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessages', 'ngCookies'])
 
-.controller('rentalDiscoverController', function ($scope, $http, $routeParams, NgMap, config, $window) {
+.controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window) {
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
     $scope.markerPink='http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFC0CB';
@@ -62,6 +62,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.httpGetRentals = function() {
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
+        likedRentalSet = $scope.getLikedRentalSet();
+        console.log(likedRentalSet);
         for (i = 0; i < $scope.selectedRentalIds.length; i++) {
             $http.get(config.serverUrl + "/api/public/rental/" + $scope.selectedRentalIds[i])
             .then(function(r2) {
@@ -69,6 +71,12 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
                 rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
+                rentalObj.isLiked = likedRentalSet.has(rentalObj.id);
+                if (rentalObj.isLiked) {
+                    rentalObj.likedImg = "../asset/image/filled_heart_32.png";
+                } else {
+                    rentalObj.likedImg = "../asset/image/empty_heart_32.png";
+                }
                 $scope.rentals.push(rentalObj);
                 $scope.currentSlideIndices.push(0);
                 $scope.customMarkerShown.push(false);
@@ -82,6 +90,53 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         var _date = new Date(parseInt(unix_time));
         return _date.getMonth() + "/" + _date.getDate() + "/" + _date.getFullYear();
     };
+    $scope.getLikedRentalSet = function() {
+        var likedRentalSet = null;
+        var likedRentals = $cookies.get('liked_rentals');
+        if (likedRentals != null && likedRentals.length > 0) {
+            likedRentalSet = new Set(JSON.parse(likedRentals));
+        } else {
+            likedRentalSet = new Set();
+        }
+        return likedRentalSet;
+    };
+    $scope.likeRental = function (rental_index) {
+        $scope.rentals[rental_index].isLiked = true;
+        $scope.rentals[rental_index].likedImg = "../asset/image/filled_heart_32.png";
+        var likedRentalSet = $scope.getLikedRentalSet();
+        if (rental_index < $scope.rentals.length && $scope.rentals[rental_index] != null) {
+            rental_id = $scope.rentals[rental_index].id;
+            likedRentalSet.add(rental_id);
+        }
+        now = new Date();
+        $cookies.put('liked_rentals',
+                     JSON.stringify(Array.from(likedRentalSet)),
+                     { expires: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())}
+        );
+    };
+    $scope.unlikeRental = function(rental_index) {
+        $scope.rentals[rental_index].isLiked = false;
+        $scope.rentals[rental_index].likedImg = "../asset/image/empty_heart_32.png";
+        var likedRentalSet = $scope.getLikedRentalSet();
+        if (rental_index < $scope.rentals.length && $scope.rentals[rental_index] != null) {
+            rental_id = $scope.rentals[rental_index].id;
+            if (likedRentalSet.has(rental_id)) {
+                likedRentalSet.delete(rental_id);
+            }
+        }
+        now = new Date();
+        $cookies.put('liked_rentals',
+                     JSON.stringify(Array.from(likedRentalSet)),
+                     { expires: new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())}
+        );
+    }
+    $scope.toggleLikeUnlike = function(rental_index) {
+        if ($scope.rentals[rental_index].isLiked) {
+            $scope.unlikeRental(rental_index);
+        } else {
+            $scope.likeRental(rental_index);
+        }
+    }
     NgMap.getMap('ng-map').then(function(map) {
         // google.maps.event.trigger(map, 'resize');
         $scope.showCustomMarker = function(evt, markerId) {
