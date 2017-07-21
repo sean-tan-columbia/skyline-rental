@@ -4,6 +4,7 @@ import com.skyline.server.Config;
 import com.skyline.server.handler.GCSAuthHandler;
 import com.skyline.server.handler.UserAuthHandler;
 import com.skyline.server.handler.RentalHandler;
+import com.skyline.server.handler.UserFavoriteHandler;
 import com.skyline.server.sstore.RedisSessionStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -39,6 +40,7 @@ public class ServerVerticle extends AbstractVerticle {
     private SessionHandler sessionHandler;
     private UserSessionHandler userSessionHandler;
     private AuthHandler redirectAuthHandler;
+    private UserFavoriteHandler userFavoriteHandler;
 
     @Override
     public void start(Future<Void> future) throws Exception {
@@ -60,6 +62,7 @@ public class ServerVerticle extends AbstractVerticle {
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
+        this.userFavoriteHandler = new UserFavoriteHandler();
 
         Router router = createRouter();
         // vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
@@ -105,6 +108,7 @@ public class ServerVerticle extends AbstractVerticle {
         // Main logic
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
         router.get("/api/public/discover").handler(rentalHandler::getMax);
+        router.post("/api/public/favorite").handler(userFavoriteHandler::favor);
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions
