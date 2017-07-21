@@ -67,16 +67,21 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             .then(function(r2) {
                 rentalObj = r2.data;
                 rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
-                rentalObj.price = Math.floor(rentalObj.price);
-                rentalObj.quantifier = rentalObj.quantifier.toLowerCase();
+                rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
                 $scope.rentals.push(rentalObj);
                 $scope.currentSlideIndices.push(0);
                 $scope.customMarkerShown.push(false);
                 $scope.markerIcons.push($scope.markerPink);
+                $scope.parseDate();
             })
         }
         console.log($scope.selectedRentalIds);
-    }
+    };
+    $scope.parseDate = function (unix_time) {
+        var _date = new Date(parseInt(unix_time));
+        return _date.getMonth() + "/" + _date.getDate() + "/" + _date.getFullYear();
+    };
     NgMap.getMap('ng-map').then(function(map) {
         // google.maps.event.trigger(map, 'resize');
         $scope.showCustomMarker = function(evt, markerId) {

@@ -90,9 +90,28 @@
                         <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_24.png" ng-click="prevSlide(rental_index)">
                         <input class="arrow-next" type="image" src="../asset/image/arrow_next_24.png" ng-click="nextSlide(rental_index)">
                     </div>
-                    <div class="text-container">
-                        <p class="text-price">${{rental.price}}</p>
-                        <p class="text-quantifier">per {{rental.quantifier}}</p>
+                    <div class="content-container">
+                        <div class="upper-container">
+                            <div class="text-price">${{rental.price}}</div>
+                            <div class="text-quantifier">/ {{rental.quantifier}}</div>
+                        </div>
+                        <div class="feature-container">
+                            <div class="feature-content">
+                                <div class="feature-number">1</div>
+                                <div class="feature-type">Bedroom</div>
+                            </div>
+                            <div class="feature-content">
+                                <div class="feature-number">1</div>
+                                <div class="feature-type">Bathroom</div>
+                            </div>
+                        </div>
+                        <div class="date-container">
+                            Move-In: {{rental.moveInDate}}
+                        </div>
+                        <br>
+                        <div class="time-container">
+                            15min ago
+                        </div>
                     </div>
                 </div>
             </div>
