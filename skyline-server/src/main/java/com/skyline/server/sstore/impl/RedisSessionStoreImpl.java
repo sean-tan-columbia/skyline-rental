@@ -50,10 +50,10 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
                     session.readFromBuffer(0, buff);
                     resultHandler.handle(Future.succeededFuture(session));
                 } else {
-                    resultHandler.handle(Future.succeededFuture(new SessionImpl(this.random, 900000L, 16)));
+                    resultHandler.handle(Future.succeededFuture(null));
                 }
             } else {
-                resultHandler.handle(Future.succeededFuture(null));
+                resultHandler.handle(Future.failedFuture(res.cause()));
             }
         });
     }
