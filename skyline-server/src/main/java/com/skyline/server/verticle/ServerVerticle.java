@@ -1,10 +1,7 @@
 package com.skyline.server.verticle;
 
 import com.skyline.server.Config;
-import com.skyline.server.handler.GCSAuthHandler;
-import com.skyline.server.handler.UserAuthHandler;
-import com.skyline.server.handler.RentalHandler;
-import com.skyline.server.handler.UserFavoriteHandler;
+import com.skyline.server.handler.*;
 import com.skyline.server.sstore.RedisSessionStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -19,7 +16,6 @@ import io.vertx.ext.auth.jdbc.JDBCAuth;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
 
@@ -40,7 +36,6 @@ public class ServerVerticle extends AbstractVerticle {
     private SessionHandler sessionHandler;
     private UserSessionHandler userSessionHandler;
     private AuthHandler redirectAuthHandler;
-    private UserFavoriteHandler userFavoriteHandler;
 
     @Override
     public void start(Future<Void> future) throws Exception {
@@ -62,7 +57,6 @@ public class ServerVerticle extends AbstractVerticle {
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
-        this.userFavoriteHandler = new UserFavoriteHandler();
 
         Router router = createRouter();
         // vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
@@ -99,16 +93,15 @@ public class ServerVerticle extends AbstractVerticle {
         router.route("/api/public/login").handler(userSessionHandler);
         router.post("/api/public/login").handler(userAuthHandler::authenticate);
         router.post("/api/public/register").handler(userAuthHandler::register);
+        router.post("/api/public/search").handler(rentalHandler::search);
 
         router.route("/api/private/*").handler(sessionHandler);
-        // router.route("/api/private/*").handler(userSessionHandler);
         router.route("/api/private/*").handler(redirectAuthHandler);
         router.get("/api/private/gcstoken").handler(gcsAuthHandler::getAccessToken);
 
         // Main logic
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
         router.get("/api/public/discover").handler(rentalHandler::getMax);
-        router.post("/api/public/favorite").handler(userFavoriteHandler::favor);
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions

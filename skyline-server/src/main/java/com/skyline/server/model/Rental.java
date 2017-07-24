@@ -1,12 +1,7 @@
 package com.skyline.server.model;
 
-import com.skyline.server.util.UUIDUtil;
-
 import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -30,6 +25,8 @@ public class Rental {
     private String description;
     private Status status;
     private Date lastUpdatedTimestamp;
+    private Bedroom bedroom;
+    private Bathroom bathroom;
 
     public Rental(String id, String posterId) {
         this.id = id;
@@ -64,7 +61,7 @@ public class Rental {
 
     public List<String> getImageIds() {
         return this.imageIds;
-    };
+    }
 
     public Rental addImageIds(String imageId) {
         this.imageIds.add(imageId);
@@ -179,21 +176,92 @@ public class Rental {
         return this;
     }
 
+    public Bedroom getBedroom() {
+        return bedroom;
+    }
+
+    public Rental setBedroom(Bedroom bedroom) {
+        this.bedroom = bedroom;
+        return this;
+    }
+
+    public Bathroom getBathroom() {
+        return bathroom;
+    }
+
+    public Rental setBathroom(Bathroom bathroom) {
+        this.bathroom = bathroom;
+        return this;
+    }
+
     public enum RentalType {
-        MASTER_BEDROOM,
-        BEDROOM,
-        LIVING_ROOM,
-        APARTMENT
+        MASTER_BEDROOM(0), BEDROOM(1), LIVING_ROOM(2), APARTMENT(3);
+
+        private int val;
+
+        RentalType(int val) {
+            this.val = val;
+        }
+
+        public int getVal() {
+            return this.val;
+        }
     }
 
     public enum Status {
-        ACTIVE,
-        INACTIVE
+        ACTIVE(0), INACTIVE(1);
+
+        private int val;
+
+        Status(int val) {
+            this.val = val;
+        }
+
+        public int getVal() {
+            return this.val;
+        }
     }
 
     public enum Quantifier {
-        DAY,
-        MONTH
+        DAY(0), MONTH(1);
+
+        private int val;
+
+        Quantifier(int val) {
+            this.val = val;
+        }
+
+        public int getVal() {
+            return this.val;
+        }
+    }
+
+    public enum Bathroom {
+        HALF(0), ONE(1), TWO(2), THREE(3);
+
+        private int val;
+
+        Bathroom(int val) {
+            this.val = val;
+        }
+
+        public int getVal() {
+            return this.val;
+        }
+    }
+
+    public enum Bedroom {
+        HALF(0), ONE(1), TWO(2), THREE(3);
+
+        private int val;
+
+        Bedroom(int val) {
+            this.val = val;
+        }
+
+        public int getVal() {
+            return this.val;
+        }
     }
 
 }
