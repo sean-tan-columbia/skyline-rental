@@ -37,23 +37,23 @@ public class RedisMultiSearch {
         });
         RedisClient client = redisSearches[0].getIndex().getRedisClient();
         CompositeFuture.all(results).setHandler(res1 -> {
-            if (res1.succeeded()) {
-                client.zinterstoreWeighed(SEARCH_KEY_BASE + name, weights, AggregateOptions.SUM, res2 -> {
-                    if (res2.succeeded()) {
-                        client.zrange(SEARCH_KEY_BASE + name, 0, -1, res3 -> {
-                            if (res3.succeeded()) {
-                                resultHandler.handle(Future.succeededFuture(res3.result().getList()));
-                            } else {
-                                resultHandler.handle(Future.failedFuture(res3.cause()));
-                            }
-                        });
+            if (res1.failed()) {
+                resultHandler.handle(Future.failedFuture(res1.cause()));
+                return;
+            }
+            client.zinterstoreWeighed(SEARCH_KEY_BASE + name, weights, AggregateOptions.SUM, res2 -> {
+                if (res2.failed()) {
+                    resultHandler.handle(Future.failedFuture(res2.cause()));
+                    return;
+                }
+                client.zrange(SEARCH_KEY_BASE + name, 0, -1, res3 -> {
+                    if (res3.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture(res3.result().getList()));
                     } else {
-                        resultHandler.handle(Future.failedFuture(res2.cause()));
+                        resultHandler.handle(Future.failedFuture(res3.cause()));
                     }
                 });
-            } else {
-                resultHandler.handle(Future.failedFuture(res1.cause()));
-            }
+            });
         });
     }
 
