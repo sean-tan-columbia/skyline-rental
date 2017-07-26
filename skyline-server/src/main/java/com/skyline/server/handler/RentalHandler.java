@@ -1,14 +1,14 @@
 package com.skyline.server.handler;
 
 import com.skyline.server.model.Rental;
-import com.skyline.server.search.RedisIndex;
-import com.skyline.server.search.RedisMultiSearch;
 import com.skyline.server.search.RedisSearch;
+import com.skyline.server.search.impl.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -28,19 +28,19 @@ public class RentalHandler {
     private final static String RENTAL_KEY_BASE = "data.core.rental:";
     private final static String NEG_INF = "-inf";
     private final static String POS_INF = "+inf";
-    private final RedisIndex moveInDateIndex;
-    private final RedisIndex priceIndex;
-    private final RedisIndex quantifierIndex;
-    private final RedisIndex bedroomIndex;
-    private final RedisIndex bathroomIndex;
+    private final RedisContinuousIndex moveInDateIndex;
+    private final RedisContinuousIndex priceIndex;
+    private final RedisCategoricalIndex quantifierIndex;
+    private final RedisCategoricalIndex bedroomIndex;
+    private final RedisCategoricalIndex bathroomIndex;
     private final RedisClient client;
 
     public RentalHandler(RedisClient client) {
-        this.moveInDateIndex = new RedisIndex("moveInDate", client);
-        this.priceIndex = new RedisIndex("price", client);
-        this.quantifierIndex = new RedisIndex("quantifier", client);
-        this.bedroomIndex = new RedisIndex("bedroom", client);
-        this.bathroomIndex = new RedisIndex("bathroom", client);
+        this.moveInDateIndex = new RedisContinuousIndex("moveInDate", client);
+        this.priceIndex = new RedisContinuousIndex("price", client);
+        this.quantifierIndex = new RedisCategoricalIndex("quantifier", client);
+        this.bedroomIndex = new RedisCategoricalIndex("bedroom", client);
+        this.bathroomIndex = new RedisCategoricalIndex("bathroom", client);
         this.client = client;
     }
 
@@ -88,15 +88,17 @@ public class RentalHandler {
 
     private void updateIndex(Rental rental, Handler<AsyncResult<Long>> resultHandler) {
         Future<Long> moveInDateFuture = Future.future();
-        this.moveInDateIndex.update(rental.getId(), (double) rental.getStartDate().getTime(), moveInDateFuture.completer());
         Future<Long> priceFuture = Future.future();
-        this.priceIndex.update(rental.getId(), rental.getPrice(), priceFuture.completer());
         Future<Long> quantifierFuture = Future.future();
-        this.quantifierIndex.update(rental.getId(), (double) rental.getQuantifier().getVal(), quantifierFuture.completer());
         Future<Long> bedroomFuture = Future.future();
-        this.bedroomIndex.update(rental.getId(), (double) rental.getBedroom().getVal(), bedroomFuture.completer());
         Future<Long> bathroomFuture = Future.future();
-        this.bathroomIndex.update(rental.getId(), (double) rental.getBathroom().getVal(), bathroomFuture.completer());
+
+        this.moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime()), moveInDateFuture.completer());
+        this.priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
+        this.quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
+        this.bedroomIndex.update(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
+        this.bathroomIndex.update(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
+
         CompositeFuture.all(moveInDateFuture, priceFuture, quantifierFuture, bedroomFuture, bathroomFuture).setHandler(res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
@@ -141,33 +143,37 @@ public class RentalHandler {
         });
     }
 
+    @SuppressWarnings("unchecked")
     public void search(RoutingContext context) {
         JsonObject searchInfo = context.getBodyAsJson();
 
-        RedisSearch moveInDateSearch = new RedisSearch(moveInDateIndex,
-                searchInfo.getString("move_in_date_min", NEG_INF),
-                searchInfo.getString("move_in_date_max", POS_INF));
-        RedisSearch priceSearch = new RedisSearch(priceIndex,
+        RedisSearch moveInDateSearch = new RedisContinuousSearch(moveInDateIndex,
+                NEG_INF, // Apartment available date should be before the user-input move-in date
+                searchInfo.getString("move_in_date", POS_INF));
+        RedisSearch priceSearch = new RedisContinuousSearch(priceIndex,
                 searchInfo.getString("price_min", NEG_INF),
                 searchInfo.getString("price_max", POS_INF));
-        RedisSearch quantifierSearch = new RedisSearch(quantifierIndex,
-                searchInfo.getString("quantifier", NEG_INF),
-                searchInfo.getString("quantifier", POS_INF));
-        RedisSearch bedroomSearch = new RedisSearch(bedroomIndex,
-                searchInfo.getString("bedroom", NEG_INF),
-                searchInfo.getString("bedroom", POS_INF));
-        RedisSearch bathroomSearch = new RedisSearch(bathroomIndex,
-                searchInfo.getString("bathroom", NEG_INF),
-                searchInfo.getString("bathroom", POS_INF));
+        RedisSearch quantifierSearch = new RedisCategoricalSearch(quantifierIndex,
+                searchInfo.getJsonArray("quantifiers", new JsonArray()).getList());
+        RedisSearch bedroomSearch = new RedisCategoricalSearch(bedroomIndex,
+                searchInfo.getJsonArray("bedrooms", new JsonArray()).getList());
+        RedisSearch bathroomSearch = new RedisCategoricalSearch(bathroomIndex,
+                searchInfo.getJsonArray("bathrooms", new JsonArray()).getList());
 
-        RedisMultiSearch redisMultiSearch =
-                new RedisMultiSearch(moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
-        redisMultiSearch.exec(res1 -> {
+        RedisCompositeSearch redisCompositeSearch =
+                new RedisCompositeSearch(moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+        redisCompositeSearch.exec(res1 -> {
             if (res1.succeeded()) {
-                context.response().setStatusCode(200).end(Json.encodePrettily(res1.result()));
-                redisMultiSearch.del(res2 -> {
-                    if (res2.failed()) {
-                        LOG.error(res2.cause().getMessage());
+                redisCompositeSearch.get(res2 -> {
+                    if (res2.succeeded()) {
+                        context.response().setStatusCode(200).end(Json.encodePrettily(res2.result()));
+                    } else {
+                        context.response().setStatusCode(500).end();
+                    }
+                });
+                redisCompositeSearch.del(res3 -> {
+                    if (res3.failed()) {
+                        LOG.error(res3.cause().getMessage());
                     }
                 });
             } else {
