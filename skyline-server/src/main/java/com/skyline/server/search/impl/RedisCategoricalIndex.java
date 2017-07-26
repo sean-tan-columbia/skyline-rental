@@ -18,7 +18,8 @@ public class RedisCategoricalIndex implements RedisIndex {
     }
 
     public void update(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
-        redisClient.sadd(name + ":" + val, key, res -> { // Inverted Index: data.redis.index:bedroom:0 -> rentalId
+        // Inverted Index: data.redis.index:bedroom:0 -> rentalId
+        redisClient.sadd(name + ":" + val, key, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(res.result()));
             } else {
