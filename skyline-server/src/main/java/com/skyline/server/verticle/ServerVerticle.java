@@ -96,6 +96,7 @@ public class ServerVerticle extends AbstractVerticle {
         router.post("/api/public/search").handler(rentalHandler::search);
 
         router.route("/api/private/*").handler(sessionHandler);
+        router.route("/api/private/*").handler(userSessionHandler);
         router.route("/api/private/*").handler(redirectAuthHandler);
         router.get("/api/private/gcstoken").handler(gcsAuthHandler::getAccessToken);
 
