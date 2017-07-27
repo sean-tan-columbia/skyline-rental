@@ -14,6 +14,52 @@
             <input type='file' file-model="myFile">
         </div>
     </div>
+    <div layout-gt-xs="row" style="margin-top:10px;margin-left=0px;">
+        <div flex-gt-xs style="margin-left:0px;">
+            <h4>Move-in Date</h4>
+            <md-datepicker ng-model="inputMoveInDate" style="width:200px;margin-left:0px;"></md-datepicker>
+        </div>
+        <div flex-gt-xs style="margin-left:100px;">
+            <h4>Move-out Date</h4>
+            <md-datepicker ng-model="inputMoveOutDate" style="width:200px;"></md-datepicker>
+        </div>
+    </div>
+
+    <div layout-gt-xs="row" style="margin-top:20px;margin-left=0px;">
+        <md-input-container style="width:550px;">
+            <label>Rent (USD)</label>
+            <input required type="number" step="10" name="rent" ng-model="inputPrice" min="0" max="10000"/>
+        </md-input-container>
+        <md-input-container style="width:100px;margin-left:20px;">
+            <label>Per</label>
+            <md-select ng-model="selectedQuantifier">
+                <md-option value=0 ng-selected="true">Monthly</md-option>
+                <md-option value=1>Daily</md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+
+    <div layout-gt-xs="row" style="margin-top:20px;margin-left=0px;">
+        <md-input-container style="width:350px;margin-left:0px;">
+            <label>Bedrooms</label>
+            <md-select required ng-model="selectedBedroom">
+                <md-option value=0>Studio</md-option>
+                <md-option value=1>1 Bed</md-option>
+                <md-option value=2>2 bed</md-option>
+                <md-option value=3>3 Bed</md-option>
+            </md-select>
+        </md-input-container>
+        <md-input-container style="width:350px;margin-left:50px;">
+            <label>Bathrooms</label>
+            <md-select required ng-model="selectedBathroom">
+                <md-option value=0>Shared</md-option>
+                <md-option value=1>1 Bath</md-option>
+                <md-option value=2>2 Bath</md-option>
+                <md-option value=3>3 Bath</md-option>
+            </md-select>
+        </md-input-container>
+    </div>
+
     <div id="address-input-wrapper">
         <p>Address:</p>
         <input  type="text"

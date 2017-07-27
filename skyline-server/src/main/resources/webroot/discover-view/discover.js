@@ -1,6 +1,6 @@
 angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessages', 'ngCookies'])
 
-.controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window) {
+.controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window, $element) {
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
     $scope.markerPink='http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFC0CB';
@@ -9,10 +9,13 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.currentSlideIndices = [];
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
+    $scope.pageSize = 5;
     $http.get(config.serverUrl + "/api/public/discover").then(function(r1) {
         rentalIds = r1.data;
-        $scope.rentalIds = r1.data;
-        $scope.pageSize = 5;
+        $scope.getRentalsWithIds(rentalIds);
+    });
+    $scope.getRentalsWithIds = function(rentalIds) {
+        $scope.rentalIds = rentalIds;
         $scope.pages = Math.ceil($scope.rentalIds.length / $scope.pageSize);
         $scope.newPages = $scope.pages > 5 ? 5 : $scope.pages;
         $scope.selectedPage = 1;
@@ -21,8 +24,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         for (var i = 0; i < $scope.newPages; i++) {
             $scope.pageList.push(i + 1);
         }
-        $scope.httpGetRentals();
-    });
+        $scope.httpGetRentals($scope.selectedRentalIds);
+    }
     $scope.isCurrentSlideIndex = function (rentalIndex, slideIndex) {
         return $scope.currentSlideIndices[rentalIndex] === slideIndex;
     };
@@ -33,8 +36,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.currentSlideIndices[rentalIndex] = ($scope.currentSlideIndices[rentalIndex] > 0) ? --$scope.currentSlideIndices[rentalIndex] : $scope.rentals[rentalIndex].imageIds.length - 1;
     };
     $scope.setData = function () {
-        $scope.selectedRentalIds = $scope.rentalIds.slice(($scope.pageSize * ($scope.selectedPage - 1)), ($scope.selectedPage * $scope.pageSize));
-        $scope.httpGetRentals();
+        var selectedRentalIds = $scope.rentalIds.slice(($scope.pageSize * ($scope.selectedPage - 1)), ($scope.selectedPage * $scope.pageSize));
+        $scope.httpGetRentals(selectedRentalIds);
     }
     $scope.isActivePage = function (page) {
         return $scope.selectedPage == page;
@@ -51,7 +54,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.selectedPage = page;
         $scope.setData();
         $scope.isActivePage(page);
-        console.log("Selected Page：" + page);
     };
     $scope.prevPages = function () {
         $scope.selectPage($scope.selectedPage - 1);
@@ -59,24 +61,56 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.nextPages = function () {
         $scope.selectPage($scope.selectedPage + 1);
     };
-    $scope.httpGetRentals = function() {
+    $scope.httpGetRentals = function(selectedRentalIds) {
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
         likedRentalSet = $scope.getLikedRentalSet();
-        console.log(likedRentalSet);
-        for (i = 0; i < $scope.selectedRentalIds.length; i++) {
-            $http.get(config.serverUrl + "/api/public/rental/" + $scope.selectedRentalIds[i])
+        for (i = 0; i < selectedRentalIds.length; i++) {
+            $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
                 rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
                 rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
                 rentalObj.isLiked = likedRentalSet.has(rentalObj.id);
+                rentalObj.age = getRentalAge(rentalObj.lastUpdatedTimestamp);
+                if (rentalObj.quantifier == "MONTH") {
+                    rentalObj.quantifier = "MTH";
+                }
                 if (rentalObj.isLiked) {
                     rentalObj.likedImg = "../asset/image/filled_heart_32.png";
                 } else {
                     rentalObj.likedImg = "../asset/image/empty_heart_32.png";
                 }
+                switch (rentalObj.bedroom) {
+                    case "STUDIO":
+                        rentalObj.bedroom = "Studio";
+                        break;
+                    case "ONE":
+                        rentalObj.bedroom = "1 Bedroom";
+                        break;
+                    case "TWO":
+                        rentalObj.bedroom = "2 Bedroom";
+                        break;
+                    case "THREE":
+                        rentalObj.bedroom = "3 Bedroom";
+                        break;
+                }
+                switch (rentalObj.bathroom) {
+                    case "SHARED":
+                        rentalObj.bathroom = "Shared Bathroom";
+                        break;
+                    case "ONE":
+                        rentalObj.bathroom = "1 Bathroom";
+                        break;
+                    case "TWO":
+                        rentalObj.bathroom = "2 Bathroom";
+                        break;
+                    case "THREE":
+                        rentalObj.bathroom = "3 Bathroom";
+                        break;
+                }
+                console.log(rentalObj);
                 $scope.rentals.push(rentalObj);
                 $scope.currentSlideIndices.push(0);
                 $scope.customMarkerShown.push(false);
@@ -84,11 +118,11 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 $scope.parseDate();
             })
         }
-        console.log($scope.selectedRentalIds);
+        console.log(selectedRentalIds);
     };
     $scope.parseDate = function (unix_time) {
         var _date = new Date(parseInt(unix_time));
-        return _date.getMonth() + "/" + _date.getDate() + "/" + _date.getFullYear();
+        return (_date.getMonth() + 1) + "/" + _date.getDate() + "/" + _date.getFullYear();
     };
     $scope.getLikedRentalSet = function() {
         var likedRentalSet = null;
@@ -137,6 +171,56 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $scope.likeRental(rental_index);
         }
     }
+
+    /* Search -> */
+    $scope.bedrooms = ['Studio' ,'1 Bed' ,'2 Bed' ,'3 Bed'];
+    $scope.bathrooms = ['Shared' ,'1 Bath' ,'2 Bath' ,'3 Bath'];
+    $element.find('input').on('keydown', function(ev) {
+        ev.stopPropagation();
+    });
+    $scope.search = function() {
+        var searchParams = {};
+        if ($scope.inputMoveInDate != undefined) {
+            searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
+        }
+        if ($scope.inputPriceMin != undefined) {
+            searchParams['price_min'] = $scope.inputPriceMin.toString();
+        }
+        if ($scope.inputPriceMax != undefined) {
+            searchParams['price_max'] = $scope.inputPriceMax.toString();
+        }
+        if ($scope.selectedQuantifier != undefined) {
+            searchParams['quantifiers'] = [$scope.selectedQuantifier];
+        }
+        if ($scope.selectedBedrooms != undefined && $scope.selectedBedrooms.length > 0) {
+            searchParams['bedrooms'] = $scope.selectedBedrooms;
+        }
+        if ($scope.selectedBathrooms != undefined && $scope.selectedBathrooms.length > 0) {
+            searchParams['bathrooms'] = $scope.selectedBathrooms;
+        }
+        console.log(searchParams);
+        $http({ method: 'POST',
+                url: config.serverUrl + '/api/public/search',
+                data: searchParams
+        }).then(function(r) {
+            console.log(r.data);
+            rentalIds = r.data;
+            $scope.getRentalsWithIds(rentalIds);
+        });
+    };
+    $scope.clearSearch = function() {
+        $scope.inputMoveInDate = undefined;
+        $scope.inputPriceMin = undefined;
+        $scope.inputPriceMax = undefined;
+        $scope.selectedQuantifier = undefined;
+        $scope.selectedBedrooms = undefined;
+        $scope.selectedBathrooms = undefined;
+        $http.get(config.serverUrl + "/api/public/discover").then(function(r1) {
+            rentalIds = r1.data;
+            $scope.getRentalsWithIds(rentalIds);
+        });
+    };
+    /* <- Search */
     NgMap.getMap('ng-map').then(function(map) {
         // google.maps.event.trigger(map, 'resize');
         $scope.showCustomMarker = function(evt, markerId) {
@@ -165,3 +249,13 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         }
     });
 });
+
+var getRentalAge = function(lastUpdatedTimestamp) {
+    diff = new Date().getTime() - lastUpdatedTimestamp;
+    console.log(diff);
+    if (diff < 3600 * 1000) {
+        return Math.ceil(diff / 60000) + "min";
+    } else {
+        return Math.ceil(diff / 3600000) + "hr";
+    }
+}

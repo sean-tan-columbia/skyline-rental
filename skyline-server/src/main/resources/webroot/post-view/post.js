@@ -48,8 +48,7 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
             scope.getAccessToken = function(callback) {
                 $http({ method: 'GET',
                         url: config.serverUrl + '/api/private/gcstoken',
-                })
-                .then(function(response) {
+                }).then(function(response) {
                     console.log(response.data)
                     callback(response.data);
                 });
@@ -72,10 +71,6 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
                     promises.push(p);
                 }
                 $q.all(promises).then(function(results){
-                    /*
-                    results.forEach(function(data,status,headers,config){
-                        console.log(data, status, headers, config);
-                    })*/
                     scope.postRental();
                 })
             }
@@ -90,16 +85,18 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
                 data = {
                     id           : scope.id,
                     posterId     : scope.posterId,
-                    price        : 1100,
-                    quantifier   : 'MONTH',
-                    rentalType   : 'BEDROOM',
+                    price        : scope.inputPrice,
+                    quantifier   : parseInt(scope.selectedQuantifier),
+                    rentalType   : '',
                     address      : scope.address,
                     lat          : scope.lat,
                     lng          : scope.lng,
-                    neighborhood : 'Newport',
-                    startDate    : '2017-07-01',
-                    endDate      : '2017-07-31',
-                    imageIds     : imageIds,
+                    neighborhood : '',
+                    move_in_date : scope.inputMoveInDate.getTime(),
+                    move_out_date: scope.inputMoveOutDate.getTime(),
+                    bedroom      : parseInt(scope.selectedBedroom),
+                    bathroom     : parseInt(scope.selectedBathroom),
+                    image_ids    : imageIds,
                     description  : scope.description,
                 };
                 console.log(data);
@@ -120,8 +117,6 @@ angular.module('skyline-post', ['ngRoute', 'ngMap'])
                 scope.place = this.getPlace();
                 scope.lat = scope.place.geometry.location.lat();
                 scope.lng = scope.place.geometry.location.lng();
-                console.log('lat:' + scope.place.geometry.location.lat());
-                console.log('lng:' + scope.place.geometry.location.lng());
                 console.log(scope.place.formatted_address);
                 scope.map.setCenter(scope.place.geometry.location);
             }

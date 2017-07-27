@@ -26,40 +26,27 @@
 }
 #header-down {
     width: 100%;
-    border-bottom-style: solid;
-    border-bottom-color: #D3D3D3;
-    border-bottom-width: 2px;
-    padding-top: 15px;
-    padding-bottom: 0px;
-}
-#header-down label.price-label {
-    margin-top: 16px;
-    font-size: 14px;
-}
-#header-down input.price-input {
-    margin-top: 4px;
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid #D3D3D3;
-    font-size: 14px;
-    padding-left: 5px;
-    height: 25px;
-    width: 100px;
-}
-#header-down label.br-label {
-    font-size: 14px;
-}
-#header-down select.br-select {
-    margin-top: 2px;
-    margin-left: 5px;
-    width:100px;
-    height: 25px;
-    font-size: 14px;
-    border:0;
-    border-bottom: 1px solid #D3D3D3;
+    border-style: solid;
+    border-color: #D3D3D3;
+    border-width: 2px;
 }
 #submit-search {
-    width: 150px;
+    width: 100px;
+    height: 30px;
+    background-color: white;
+    border: 1px solid #4169E1;
+    border-radius: 4px;
+    font-size: 15px;
+    color: #4169E1;
+    margin-left: 0px;
+}
+#submit-search:hover {
+    background-color: #4169E1;
+    color: white;
+}
+#submit-clear {
+    margin-left: 15px;
+    width: 100px;
     height: 30px;
     background-color: white;
     border: 1px solid #4169E1;
@@ -67,7 +54,7 @@
     font-size: 15px;
     color: #4169E1;
 }
-#submit-search:hover {
+#submit-clear:hover {
     background-color: #4169E1;
     color: white;
 }
@@ -192,14 +179,6 @@
     font-size: 16px;
     color: black;
     margin-right: 5px;
-    font-family: Arial;
-}
-#item-scroll div.item-container div.content-container div.feature-container div.feature-content div.feature-type {
-    float: left;
-    font-size: 16px;
-    color: grey;
-    font-family: Arial;
-    margin-right: 10px;
 }
 #item-scroll div.item-container div.content-container div.date-container {
     margin-left: 10px;
@@ -210,7 +189,7 @@
 }
 #item-scroll div.item-container div.content-container div.time-container {
     margin-top: 35px;
-    margin-left: 30px;
+    margin-left: 20px;
     font-size: 16px;
     text-align: right;
     float: left;
