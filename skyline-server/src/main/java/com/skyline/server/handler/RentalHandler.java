@@ -15,8 +15,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.redis.RedisClient;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -46,44 +45,45 @@ public class RentalHandler {
 
     public void put(RoutingContext context) {
         JsonObject rentalInfo = context.getBodyAsJson();
-        if (!rentalInfo.containsKey("posterId")) {
-            LOG.error("PosterId not provided.");
+        Rental rental;
+        try {
+            rental = mapToRental(rentalInfo);
+        } catch (Exception e) {
+            LOG.error(e.getCause());
             return;
         }
-        try {
-            Rental rental = mapToRental(rentalInfo);
-            JsonObject rentalJson = new JsonObject(Json.encode(rental));
-            client.hmset(RENTAL_KEY_BASE + rental.getId(), rentalJson, r -> {
-                if (r.succeeded()) {
-                    updateIndex(rental, res -> {
-                        context.response().setStatusCode(201).end();
-                        LOG.info("Inserted Rental " + rentalJson.getString("id"));
-                    });
-                } else {
-                    context.response().setStatusCode(500).end();
-                    LOG.error("Failed to insert Rental " + rentalJson.getString("id"));
-                }
-            });
-        } catch (Exception e) {
-            LOG.error(e);
-        }
+        JsonObject rentalJson = new JsonObject(Json.encode(rental));
+        client.hmset(RENTAL_KEY_BASE + rental.getId(), rentalJson, r -> {
+            if (r.succeeded()) {
+                updateIndex(rental, res -> {
+                    context.response().setStatusCode(201).end();
+                    LOG.info("Inserted Rental " + rentalJson.getString("id"));
+                });
+            } else {
+                context.response().setStatusCode(500).end();
+                LOG.error("Failed to insert Rental " + rentalJson.getString("id"));
+            }
+        });
     }
 
-    private Rental mapToRental(JsonObject rentalInfo) throws ParseException {
-        return new Rental(rentalInfo.getString("id"), rentalInfo.getString("posterId"))
-            .setRentalType(Rental.RentalType.valueOf(rentalInfo.getString("rentalType", "")))
-            .setAddress(rentalInfo.getString("address", ""))
-            .setNeighborhood(rentalInfo.getString("neighborhood", ""))
-            .setPrice(rentalInfo.getDouble("price", 0.0))
-            .setQuantifier(Rental.Quantifier.valueOf(rentalInfo.getString("quantifier", "")))
-            .setDescription(rentalInfo.getString("description"))
-            .setStartDate(new SimpleDateFormat("yyyy-MM-dd").parse(rentalInfo.getString("startDate", "")))
-            .setEndDate(new SimpleDateFormat("yyyy-MM-dd").parse(rentalInfo.getString("endDate", "")))
-            .setLatitude(rentalInfo.getDouble("lat", 0.0))
-            .setLongitude(rentalInfo.getDouble("lng", 0.0))
-            .setImageIds(rentalInfo.getJsonArray("imageIds").stream()
-                    .map(i -> new JsonObject(i.toString()).getValue("id").toString())
-                    .collect(Collectors.toList()));
+    private Rental mapToRental(JsonObject rentalInfo) {
+        Rental rental = new Rental(rentalInfo.getString("id"), rentalInfo.getString("posterId"));
+        if (rentalInfo.getLong("move_out_date") != null) {
+            rental.setEndDate(new Date(rentalInfo.getLong("move_out_date")));
+        }
+        return rental.setRentalType(Rental.RentalType.values()[rentalInfo.getInteger("rental_type", 1)])
+                .setStartDate(new Date(rentalInfo.getLong("move_in_date")))
+                .setPrice(rentalInfo.getDouble("price"))
+                .setQuantifier(Rental.Quantifier.values()[rentalInfo.getInteger("quantifier")])
+                .setBedroom(Rental.Bedroom.values()[rentalInfo.getInteger("bedroom")])
+                .setBathroom(Rental.Bathroom.values()[rentalInfo.getInteger("bathroom")])
+                .setLatitude(rentalInfo.getDouble("lat"))
+                .setLongitude(rentalInfo.getDouble("lng"))
+                .setImageIds(rentalInfo.getJsonArray("image_ids")
+                        .stream().map(i -> new JsonObject(i.toString()).getValue("id").toString()).collect(Collectors.toList()))
+                .setAddress(rentalInfo.getString("address", ""))
+                .setNeighborhood(rentalInfo.getString("neighborhood", ""))
+                .setDescription(rentalInfo.getString("description", ""));
     }
 
     private void updateIndex(Rental rental, Handler<AsyncResult<Long>> resultHandler) {
@@ -92,12 +92,11 @@ public class RentalHandler {
         Future<Long> quantifierFuture = Future.future();
         Future<Long> bedroomFuture = Future.future();
         Future<Long> bathroomFuture = Future.future();
-
-        this.moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime()), moveInDateFuture.completer());
-        this.priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
-        this.quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
-        this.bedroomIndex.update(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
-        this.bathroomIndex.update(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
+        moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime() / 1000), moveInDateFuture.completer());
+        priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
+        quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
+        bedroomIndex.update(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
+        bathroomIndex.update(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
 
         CompositeFuture.all(moveInDateFuture, priceFuture, quantifierFuture, bedroomFuture, bathroomFuture).setHandler(res -> {
             if (res.succeeded()) {

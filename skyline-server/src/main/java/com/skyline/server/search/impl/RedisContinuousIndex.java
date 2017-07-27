@@ -21,7 +21,7 @@ public class RedisContinuousIndex implements RedisIndex {
     }
 
     public void update(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
-        redisClient.zadd(name, Long.valueOf(val), key, res -> {
+        redisClient.zadd(name, Double.valueOf(val), key, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(res.result()));
             } else {

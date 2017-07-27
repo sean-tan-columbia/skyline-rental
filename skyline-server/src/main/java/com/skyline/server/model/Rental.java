@@ -223,7 +223,7 @@ public class Rental {
     }
 
     public enum Quantifier {
-        DAY(0), MONTH(1);
+        MONTH(0), DAY(1);
 
         private int val;
 
@@ -237,7 +237,7 @@ public class Rental {
     }
 
     public enum Bathroom {
-        HALF(0), ONE(1), TWO(2), THREE(3);
+        SHARED(0), ONE(1), TWO(2), THREE(3);
 
         private int val;
 
@@ -251,7 +251,7 @@ public class Rental {
     }
 
     public enum Bedroom {
-        HALF(0), ONE(1), TWO(2), THREE(3);
+        STUDIO(0), ONE(1), TWO(2), THREE(3);
 
         private int val;
 
