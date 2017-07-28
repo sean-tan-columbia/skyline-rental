@@ -139,14 +139,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         }
         return likedRentalSet;
     };
-//    $scope.showLikedRentals = function() {
-//        if ($scope.search.showLiked) {
-//            likedRentalSet = $scope.getLikedRentalSet();
-//            $scope.getRentalsWithIds(Array.from(likedRentalSet));
-//        } else {
-//            $scope.sort();
-//        }
-//    };
     $scope.likeRental = function (rental_index) {
         $scope.rentals[rental_index].isLiked = true;
         $scope.rentals[rental_index].likedImg = "../asset/image/filled_heart_32.png";
