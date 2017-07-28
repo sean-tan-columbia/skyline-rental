@@ -102,7 +102,7 @@ public class ServerVerticle extends AbstractVerticle {
 
         // Main logic
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
-        router.get("/api/public/discover").handler(rentalHandler::getMax);
+        router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions

@@ -14,6 +14,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.redis.RedisClient;
+import io.vertx.redis.op.RangeOptions;
 
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -25,8 +26,10 @@ public class RentalHandler {
 
     private final static Logger LOG = LoggerFactory.getLogger(RentalHandler.class);
     private final static String RENTAL_KEY_BASE = "data.core.rental:";
+    private final static String SEARCH_KEY_BASE = "data.redis.index:";
     private final static String NEG_INF = "-inf";
     private final static String POS_INF = "+inf";
+    private final RedisContinuousIndex lastUpdatedTimestampIndex;
     private final RedisContinuousIndex moveInDateIndex;
     private final RedisContinuousIndex priceIndex;
     private final RedisCategoricalIndex quantifierIndex;
@@ -35,6 +38,7 @@ public class RentalHandler {
     private final RedisClient client;
 
     public RentalHandler(RedisClient client) {
+        this.lastUpdatedTimestampIndex = new RedisContinuousIndex("lastUpdatedTimestamp", client);
         this.moveInDateIndex = new RedisContinuousIndex("moveInDate", client);
         this.priceIndex = new RedisContinuousIndex("price", client);
         this.quantifierIndex = new RedisCategoricalIndex("quantifier", client);
@@ -87,11 +91,13 @@ public class RentalHandler {
     }
 
     private void updateIndex(Rental rental, Handler<AsyncResult<Long>> resultHandler) {
+        Future<Long> lastUpdatedTimestampFuture = Future.future();
         Future<Long> moveInDateFuture = Future.future();
         Future<Long> priceFuture = Future.future();
         Future<Long> quantifierFuture = Future.future();
         Future<Long> bedroomFuture = Future.future();
         Future<Long> bathroomFuture = Future.future();
+        lastUpdatedTimestampIndex.update(rental.getId(), String.valueOf(rental.getLastUpdatedTimestamp().getTime() / 1000), lastUpdatedTimestampFuture.completer());
         moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime() / 1000), moveInDateFuture.completer());
         priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
         quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
@@ -142,10 +148,51 @@ public class RentalHandler {
         });
     }
 
+    public void sort(RoutingContext context) {
+        String sorter = context.request().getParam("sorter");
+        String order = context.request().getParam("order");
+        if (sorter.equals("last_updated_timestamp") && order.equals("desc")) {
+            sort(context, "lastUpdatedTimestamp", false);
+        } else if (sorter.equals("last_updated_timestamp") && order.equals("asc")) {
+            sort(context, "lastUpdatedTimestamp", true);
+        } else if (sorter.equals("price") && order.equals("desc")) {
+            sort(context, "price", false);
+        } else if (sorter.equals("price") && order.equals("asc")) {
+            sort(context, "price", true);
+        }
+    }
+
+    private void sort(RoutingContext context, String sorter, Boolean order) {
+        if (order) { // Ascending
+            client.zrange(SEARCH_KEY_BASE + sorter, 0, -1, r -> {
+                if (r.succeeded()) {
+                    context.response().putHeader("content-type", "application/json")
+                            .putHeader("Access-Control-Allow-Origin", "*")
+                            .end(Json.encodePrettily(r.result()));
+                } else {
+                    context.response().setStatusCode(500).end();
+                }
+            });
+        } else {
+            client.zrevrange(SEARCH_KEY_BASE + sorter, 0, -1, RangeOptions.NONE, r -> {
+                if (r.succeeded()) {
+                    context.response().putHeader("content-type", "application/json")
+                            .putHeader("Access-Control-Allow-Origin", "*")
+                            .end(Json.encodePrettily(r.result()));
+                } else {
+                    context.response().setStatusCode(500).end();
+                }
+            });
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public void search(RoutingContext context) {
         JsonObject searchInfo = context.getBodyAsJson();
 
+        String primary = searchInfo.getString("primary", "last_updated_timestamp");
+        String order = searchInfo.getString("order", "desc");
+        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch(lastUpdatedTimestampIndex, NEG_INF, POS_INF);
         RedisSearch moveInDateSearch = new RedisContinuousSearch(moveInDateIndex,
                 NEG_INF, // Apartment available date should be before the user-input move-in date
                 searchInfo.getString("move_in_date", POS_INF));
@@ -159,11 +206,11 @@ public class RentalHandler {
         RedisSearch bathroomSearch = new RedisCategoricalSearch(bathroomIndex,
                 searchInfo.getJsonArray("bathrooms", new JsonArray()).getList());
 
-        RedisCompositeSearch redisCompositeSearch =
-                new RedisCompositeSearch(moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+        RedisCompositeSearch redisCompositeSearch = getCompositeSearch(primary,
+                lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
         redisCompositeSearch.exec(res1 -> {
             if (res1.succeeded()) {
-                redisCompositeSearch.get(res2 -> {
+                redisCompositeSearch.get(order.equals("asc"), res2 -> {
                     if (res2.succeeded()) {
                         context.response().setStatusCode(200).end(Json.encodePrettily(res2.result()));
                     } else {
@@ -179,6 +226,25 @@ public class RentalHandler {
                 context.response().setStatusCode(500).end();
             }
         });
+    }
+
+    private RedisCompositeSearch getCompositeSearch(String primary,
+                                                    RedisSearch lastUpdatedTimestampSearch,
+                                                    RedisSearch moveInDateSearch,
+                                                    RedisSearch priceSearch,
+                                                    RedisSearch quantifierSearch,
+                                                    RedisSearch bedroomSearch,
+                                                    RedisSearch bathroomSearch) {
+        switch (primary) {
+            case "last_updated_timestamp":
+                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+            case "move_in_date":
+                return new RedisCompositeSearch(moveInDateSearch, lastUpdatedTimestampSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+            case "price":
+                return new RedisCompositeSearch(priceSearch, moveInDateSearch, lastUpdatedTimestampSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+            default:
+                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+        }
     }
 
 }
