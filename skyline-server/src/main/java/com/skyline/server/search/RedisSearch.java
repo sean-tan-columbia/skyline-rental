@@ -1,5 +1,6 @@
 package com.skyline.server.search;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
@@ -11,7 +12,7 @@ public interface RedisSearch {
 
     void del(Handler<AsyncResult<Long>> resultHandler);
 
-    void get(Handler<AsyncResult<List<String>>> resultHandler);
+    void get(Boolean order, Handler<AsyncResult<List<String>>> resultHandler);
 
     String getName();
 
