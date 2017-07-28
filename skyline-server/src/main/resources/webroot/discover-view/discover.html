@@ -32,8 +32,7 @@
         </div>
         <div id="header-down">
             <div class="layout layout-row layout-margin">
-                <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-in date"
-                               style="width:170px;"></md-datepicker>
+                <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-In" style="width:170px;"></md-datepicker>
                 <md-input-container md-no-float style="width:120px;margin-left:10px;">
                     <input type="number" step="10" ng-model="inputPriceMin"
                            min="0" max="10000" placeholder="$ Min"/>
@@ -103,12 +102,28 @@
             </div>
         </div>
         <div id="main-right" class="floating">
+            <div style="width:100%;margin-left:30px;margin-top:8px;margin-bottom:8px;">
+                <select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"
+                        ng-init="search.selectedSorter='latest'"
+                        style="border:1px solid #ccc;font-size: 16px; height:30px; width:160px;">
+                    <option value="latest" ng-selected="true">Latest</option>
+                    <option value="expensive">Expensive</option>
+                    <option value="cheap">Cheap</option>
+                </select>
+                <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
+                             class="md-primary"
+                             style="margin-top:0px;margin-bottom:0px;margin-left:50px;"
+                             ng-change="sort()">
+                    Favourites
+                    <p style="display:inline;margin-left:60px;font-size:16px;">{{totalIds}} results</p>
+                </md-checkbox>
+            </div>
             <div id="item-scroll">
                 <div class="item-container"
                      ng-repeat="rental in rentals"
                      ng-init="rental_index=$index"
-                     ng-mouseenter="toggleMarkerColor($index)"
-                     ng-mouseleave="toggleMarkerColor($index)">
+                     ng-mouseenter="toggleMarkerColor($index, 'red')"
+                     ng-mouseleave="toggleMarkerColor($index, 'pink')">
                     <div class="img-container">
                         <a target="_self" ng-href="#/detail/{{rental.id}}">
                             <img ng-repeat="slide in rental.imageIds" ng-init="slide_index=$index" ng-hide="!isCurrentSlideIndex(rental_index, slide_index)" ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}">

@@ -9,13 +9,14 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.currentSlideIndices = [];
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
-    $scope.pageSize = 5;
-    $http.get(config.serverUrl + "/api/public/discover").then(function(r1) {
+    $scope.pageSize = 20;
+    $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
         rentalIds = r1.data;
         $scope.getRentalsWithIds(rentalIds);
     });
     $scope.getRentalsWithIds = function(rentalIds) {
         $scope.rentalIds = rentalIds;
+        $scope.totalIds = rentalIds.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         $scope.pages = Math.ceil($scope.rentalIds.length / $scope.pageSize);
         $scope.newPages = $scope.pages > 5 ? 5 : $scope.pages;
         $scope.selectedPage = 1;
@@ -65,7 +66,11 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
         likedRentalSet = $scope.getLikedRentalSet();
+        console.log($scope.search.showLiked);
         for (i = 0; i < selectedRentalIds.length; i++) {
+            if ($scope.search.showLiked && !likedRentalSet.has(selectedRentalIds[i])) {
+                continue;
+            }
             $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
@@ -110,7 +115,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                         rentalObj.bathroom = "3 Bathroom";
                         break;
                 }
-                console.log(rentalObj);
+                // console.log(rentalObj);
                 $scope.rentals.push(rentalObj);
                 $scope.currentSlideIndices.push(0);
                 $scope.customMarkerShown.push(false);
@@ -134,6 +139,14 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         }
         return likedRentalSet;
     };
+//    $scope.showLikedRentals = function() {
+//        if ($scope.search.showLiked) {
+//            likedRentalSet = $scope.getLikedRentalSet();
+//            $scope.getRentalsWithIds(Array.from(likedRentalSet));
+//        } else {
+//            $scope.sort();
+//        }
+//    };
     $scope.likeRental = function (rental_index) {
         $scope.rentals[rental_index].isLiked = true;
         $scope.rentals[rental_index].likedImg = "../asset/image/filled_heart_32.png";
@@ -170,6 +183,30 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         } else {
             $scope.likeRental(rental_index);
         }
+    };
+    $scope.sort = function() {
+        if ($scope.searchParams == undefined) {
+            if ($scope.search.selectedSorter == "latest") {
+                $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
+                    rentalIds = r1.data;
+                    $scope.getRentalsWithIds(rentalIds);
+                });
+            } else if ($scope.search.selectedSorter == "expensive") {
+                $http.get(config.serverUrl + "/api/public/discover/price/desc").then(function(r1) {
+                    rentalIds = r1.data;
+                    $scope.getRentalsWithIds(rentalIds);
+                });
+            } else if ($scope.search.selectedSorter == "cheap") {
+                $http.get(config.serverUrl + "/api/public/discover/price/asc").then(function(r1) {
+                    rentalIds = r1.data;
+                    $scope.getRentalsWithIds(rentalIds);
+                });
+            } else {
+                console.log("no sorter found");
+            }
+        } else {
+            $scope.search();
+        }
     }
 
     /* Search -> */
@@ -179,29 +216,40 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         ev.stopPropagation();
     });
     $scope.search = function() {
-        var searchParams = {};
+        $scope.searchParams = {};
         if ($scope.inputMoveInDate != undefined) {
-            searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
+            $scope.searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
         }
         if ($scope.inputPriceMin != undefined) {
-            searchParams['price_min'] = $scope.inputPriceMin.toString();
+            $scope.searchParams['price_min'] = $scope.inputPriceMin.toString();
         }
         if ($scope.inputPriceMax != undefined) {
-            searchParams['price_max'] = $scope.inputPriceMax.toString();
+            $scope.searchParams['price_max'] = $scope.inputPriceMax.toString();
         }
         if ($scope.selectedQuantifier != undefined) {
-            searchParams['quantifiers'] = [$scope.selectedQuantifier];
+            $scope.searchParams['quantifiers'] = [$scope.selectedQuantifier];
         }
         if ($scope.selectedBedrooms != undefined && $scope.selectedBedrooms.length > 0) {
-            searchParams['bedrooms'] = $scope.selectedBedrooms;
+            $scope.searchParams['bedrooms'] = $scope.selectedBedrooms;
         }
         if ($scope.selectedBathrooms != undefined && $scope.selectedBathrooms.length > 0) {
-            searchParams['bathrooms'] = $scope.selectedBathrooms;
+            $scope.searchParams['bathrooms'] = $scope.selectedBathrooms;
         }
-        console.log(searchParams);
+        if ($scope.search.selectedSorter != undefined) {
+            if ($scope.search.selectedSorter == "latest") {
+                $scope.searchParams['primary'] = "last_updated_timestamp"
+            } else if ($scope.search.selectedSorter == "expensive") {
+                $scope.searchParams['primary'] = "price"
+                $scope.searchParams['order'] = "desc"
+            } else if ($scope.search.selectedSorter == "cheap") {
+                $scope.searchParams['primary'] = "price"
+                $scope.searchParams['order'] = "asc"
+            }
+        }
+        console.log($scope.searchParams);
         $http({ method: 'POST',
                 url: config.serverUrl + '/api/public/search',
-                data: searchParams
+                data: $scope.searchParams
         }).then(function(r) {
             console.log(r.data);
             rentalIds = r.data;
@@ -209,16 +257,17 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         });
     };
     $scope.clearSearch = function() {
+        if ($scope.searchParams == undefined) {
+            return;
+        }
+        $scope.searchParams = undefined;
         $scope.inputMoveInDate = undefined;
         $scope.inputPriceMin = undefined;
         $scope.inputPriceMax = undefined;
         $scope.selectedQuantifier = undefined;
         $scope.selectedBedrooms = undefined;
         $scope.selectedBathrooms = undefined;
-        $http.get(config.serverUrl + "/api/public/discover").then(function(r1) {
-            rentalIds = r1.data;
-            $scope.getRentalsWithIds(rentalIds);
-        });
+        $scope.search();
     };
     /* <- Search */
     NgMap.getMap('ng-map').then(function(map) {
@@ -240,8 +289,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 $scope.customMarkerShown[markerId] = false;
             }
         };
-        $scope.toggleMarkerColor = function(markerId) {
-            if ($scope.markerIcons[markerId] == $scope.markerPink) {
+        $scope.toggleMarkerColor = function(markerId, targetColor) {
+            if (targetColor == "red") {
                 $scope.markerIcons[markerId] = $scope.markerRed;
             } else {
                 $scope.markerIcons[markerId] = $scope.markerPink;
@@ -252,10 +301,11 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
 
 var getRentalAge = function(lastUpdatedTimestamp) {
     diff = new Date().getTime() - lastUpdatedTimestamp;
-    console.log(diff);
     if (diff < 3600 * 1000) {
-        return Math.ceil(diff / 60000) + "min";
+        return Math.floor(diff / 60000) + "min";
+    } else if (diff < 3600 * 24 * 1000) {
+        return Math.floor(diff / 3600000) + "hr";
     } else {
-        return Math.ceil(diff / 3600000) + "hr";
+        return Math.floor(diff / (3600 * 24 * 1000)) + "d";
     }
 }
