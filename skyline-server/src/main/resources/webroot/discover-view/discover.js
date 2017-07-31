@@ -213,6 +213,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     });
     $scope.submitSearch = function() {
         $scope.search.showLiked = false;
+        $scope.resetSearchParams();
         if ($scope.inputMoveInDate != undefined) {
             $scope.searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
         }
@@ -272,19 +273,22 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         console.log($scope.searchParams);
         $scope.search();
     };
+    $scope.resetSearchParams = function() {
+        delete $scope.searchParams['move_in_date'];
+        delete $scope.searchParams['price_min'];
+        delete $scope.searchParams['price_max'];
+        delete $scope.searchParams['bedrooms'];
+        delete $scope.searchParams['bathrooms'];
+        $scope.searchParams['quantifiers'] = [$scope.selectedQuantifier];
+    };
     $scope.clearSearch = function() {
         $scope.inputMoveInDate = undefined;
         $scope.inputPriceMin = undefined;
         $scope.inputPriceMax = undefined;
-        $scope.selectedQuantifier = undefined;
         $scope.selectedBedrooms = undefined;
         $scope.selectedBathrooms = undefined;
-        delete $scope.searchParams['move_in_date'];
-        delete $scope.searchParams['price_min'];
-        delete $scope.searchParams['price_max'];
-        delete $scope.searchParams['quantifiers'];
-        delete $scope.searchParams['bedrooms'];
-        delete $scope.searchParams['bathrooms'];
+        $scope.selectedQuantifier = "0";
+        $scope.resetSearchParams();
         $scope.search();
     };
     /* <- Search */
