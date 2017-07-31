@@ -10,6 +10,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
     $scope.pageSize = 20;
+    $scope.searchParams = {};
     $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
         rentalIds = r1.data;
         $scope.getRentalsWithIds(rentalIds);
@@ -66,7 +67,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
         likedRentalSet = $scope.getLikedRentalSet();
-        console.log($scope.search.showLiked);
         for (i = 0; i < selectedRentalIds.length; i++) {
             if ($scope.search.showLiked && !likedRentalSet.has(selectedRentalIds[i])) {
                 continue;
@@ -123,7 +123,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 $scope.parseDate();
             })
         }
-        console.log(selectedRentalIds);
+        // console.log(selectedRentalIds);
     };
     $scope.parseDate = function (unix_time) {
         var _date = new Date(parseInt(unix_time));
@@ -176,39 +176,43 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $scope.likeRental(rental_index);
         }
     };
-    $scope.sort = function() {
-        if ($scope.searchParams == undefined) {
-            if ($scope.search.selectedSorter == "latest") {
-                $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
-                    rentalIds = r1.data;
-                    $scope.getRentalsWithIds(rentalIds);
-                });
-            } else if ($scope.search.selectedSorter == "expensive") {
-                $http.get(config.serverUrl + "/api/public/discover/price/desc").then(function(r1) {
-                    rentalIds = r1.data;
-                    $scope.getRentalsWithIds(rentalIds);
-                });
-            } else if ($scope.search.selectedSorter == "cheap") {
-                $http.get(config.serverUrl + "/api/public/discover/price/asc").then(function(r1) {
-                    rentalIds = r1.data;
-                    $scope.getRentalsWithIds(rentalIds);
-                });
-            } else {
-                console.log("no sorter found");
-            }
-        } else {
-            $scope.search();
-        }
+    $scope.placeChanged = function() {
+        $scope.search.showLiked = false; // Clear the "only favorites" option
+        var place = this.getPlace();
+        var lat = place.geometry.location.lat();
+        var lng = place.geometry.location.lng();
+        $scope.map.setCenter(place.geometry.location);
+        $scope.map.setZoom(15); // Call map.on-zoom_changed automatically.
     }
-
+    $scope.sort = function() {
+        switch ($scope.search.selectedSorter) {
+            case "latest":
+                $scope.searchParams['primary'] = "last_updated_timestamp";
+                $scope.searchParams['order'] = "desc";
+                break;
+            case "expensive":
+                $scope.searchParams['primary'] = "price";
+                $scope.searchParams['order'] = "desc";
+                break;
+            case "cheap":
+                $scope.searchParams['primary'] = "price";
+                $scope.searchParams['order'] = "asc";
+                break;
+            default:
+                $scope.searchParams['primary'] = "last_updated_timestamp";
+                $scope.searchParams['order'] = "desc";
+                break;
+        };
+        $scope.search();
+    }
     /* Search -> */
     $scope.bedrooms = ['Studio' ,'1 Bed' ,'2 Bed' ,'3 Bed'];
     $scope.bathrooms = ['Shared' ,'1 Bath' ,'2 Bath' ,'3 Bath'];
     $element.find('input').on('keydown', function(ev) {
         ev.stopPropagation();
     });
-    $scope.search = function() {
-        $scope.searchParams = {};
+    $scope.submitSearch = function() {
+        $scope.search.showLiked = false;
         if ($scope.inputMoveInDate != undefined) {
             $scope.searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
         }
@@ -227,18 +231,9 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         if ($scope.selectedBathrooms != undefined && $scope.selectedBathrooms.length > 0) {
             $scope.searchParams['bathrooms'] = $scope.selectedBathrooms;
         }
-        if ($scope.search.selectedSorter != undefined) {
-            if ($scope.search.selectedSorter == "latest") {
-                $scope.searchParams['primary'] = "last_updated_timestamp"
-            } else if ($scope.search.selectedSorter == "expensive") {
-                $scope.searchParams['primary'] = "price"
-                $scope.searchParams['order'] = "desc"
-            } else if ($scope.search.selectedSorter == "cheap") {
-                $scope.searchParams['primary'] = "price"
-                $scope.searchParams['order'] = "asc"
-            }
-        }
-        console.log($scope.searchParams);
+        $scope.search();
+    };
+    $scope.search = function() {
         $http({ method: 'POST',
                 url: config.serverUrl + '/api/public/search',
                 data: $scope.searchParams
@@ -248,22 +243,54 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $scope.getRentalsWithIds(rentalIds);
         });
     };
-    $scope.clearSearch = function() {
-        if ($scope.searchParams == undefined) {
+    $scope.searchLoc = function(evt, rentalObj) {
+        var mapSearchParams = {};
+        pos_delta = 0.0000001;
+        mapSearchParams['lng_min'] = (parseFloat(rentalObj.longitude) - pos_delta).toString();
+        mapSearchParams['lng_max'] = (parseFloat(rentalObj.longitude) + pos_delta).toString();
+        mapSearchParams['lat_min'] = (parseFloat(rentalObj.latitude) - pos_delta).toString();
+        mapSearchParams['lat_max'] = (parseFloat(rentalObj.latitude) + pos_delta).toString();
+        $http({ method: 'POST',
+                url: config.serverUrl + '/api/public/mapsearch',
+                data: mapSearchParams
+        }).then(function(r) {
+            console.log(r.data);
+            rentalIds = r.data;
+            $scope.getRentalsWithIds(rentalIds);
+        });
+    };
+    $scope.searchMap = function() {
+        if ($scope.map == undefined) {
             return;
         }
-        $scope.searchParams = undefined;
+        $scope.search.showLiked = false;
+        var bounds = $scope.map.getBounds();
+        $scope.searchParams['lng_min'] = bounds.getSouthWest().lng().toString();
+        $scope.searchParams['lng_max'] = bounds.getNorthEast().lng().toString();
+        $scope.searchParams['lat_min'] = bounds.getSouthWest().lat().toString();
+        $scope.searchParams['lat_max'] = bounds.getNorthEast().lat().toString();
+        console.log($scope.searchParams);
+        $scope.search();
+    };
+    $scope.clearSearch = function() {
         $scope.inputMoveInDate = undefined;
         $scope.inputPriceMin = undefined;
         $scope.inputPriceMax = undefined;
         $scope.selectedQuantifier = undefined;
         $scope.selectedBedrooms = undefined;
         $scope.selectedBathrooms = undefined;
+        delete $scope.searchParams['move_in_date'];
+        delete $scope.searchParams['price_min'];
+        delete $scope.searchParams['price_max'];
+        delete $scope.searchParams['quantifiers'];
+        delete $scope.searchParams['bedrooms'];
+        delete $scope.searchParams['bathrooms'];
         $scope.search();
     };
     /* <- Search */
     NgMap.getMap('ng-map').then(function(map) {
         // google.maps.event.trigger(map, 'resize');
+        $scope.map = map;
         $scope.showCustomMarker = function(evt, markerId) {
             $scope.$apply(function(){
                 $scope.closeAllCustomMarker();
