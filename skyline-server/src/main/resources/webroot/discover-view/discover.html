@@ -18,7 +18,12 @@
                 <label>Skyline</label>
             </div>
             <div id="header-search">
-
+                <input type="text"
+                       ng-model="address"
+                       places-auto-complete
+                       component-restrictions="{country:'us'}"
+                       types="['establishment']"
+                       on-place-changed="placeChanged()">
             </div>
             <div id="header-menu">
                 <ul>
@@ -69,7 +74,7 @@
                 </md-input-container>
 
                 <div style="margin-left:34px;">
-                    <input type="submit" id="submit-search" value="Search" ng-click="search()"/>
+                    <input type="submit" id="submit-search" value="Search" ng-click="submitSearch()"/>
                     <input type="submit" id="submit-clear" value="Clear" ng-click="clearSearch()"/>
                 </div>
             </div>
@@ -83,10 +88,11 @@
                         center="40.785,-73.968"
                         zoom="12"
                         default-style="false"
-                        on-click="closeAllCustomMarker()">
+                        on-click="closeAllCustomMarker()"
+                        on-tilesloaded="searchMap()">
                     <marker ng-repeat="r in rentals"
                             position="{{r.latitude}},{{r.longitude}}"
-                            on-click="showCustomMarker($index)"
+                            on-click="searchLoc(rentals[$index])"
                             icon="{{markerIcons[$index]}}">
                     </marker>
                     <custom-marker id="{{$index}}"
@@ -102,7 +108,7 @@
             </div>
         </div>
         <div id="main-right" class="floating">
-            <div style="width:100%;margin-left:30px;margin-top:8px;margin-bottom:8px;">
+            <div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">
                 <select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"
                         ng-init="search.selectedSorter='latest'"
                         style="border:1px solid #ccc;font-size: 16px; height:30px; width:160px;">
@@ -113,7 +119,7 @@
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
                              class="md-primary"
                              style="margin-top:0px;margin-bottom:0px;margin-left:50px;"
-                             ng-change="sort()">
+                             ng-change="search()">
                     Favourites
                     <p style="display:inline;margin-left:60px;font-size:16px;">{{totalIds}} results</p>
                 </md-checkbox>

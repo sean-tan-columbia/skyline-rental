@@ -16,6 +16,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.op.RangeOptions;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,8 @@ public class RentalHandler {
     private final RedisCategoricalIndex quantifierIndex;
     private final RedisCategoricalIndex bedroomIndex;
     private final RedisCategoricalIndex bathroomIndex;
+    private final RedisContinuousIndex latitudeIndex;
+    private final RedisContinuousIndex longitudeIndex;
     private final RedisClient client;
 
     public RentalHandler(RedisClient client) {
@@ -44,6 +47,8 @@ public class RentalHandler {
         this.quantifierIndex = new RedisCategoricalIndex("quantifier", client);
         this.bedroomIndex = new RedisCategoricalIndex("bedroom", client);
         this.bathroomIndex = new RedisCategoricalIndex("bathroom", client);
+        this.latitudeIndex = new RedisContinuousIndex("latitude", client);
+        this.longitudeIndex = new RedisContinuousIndex("longitude", client);
         this.client = client;
     }
 
@@ -97,14 +102,26 @@ public class RentalHandler {
         Future<Long> quantifierFuture = Future.future();
         Future<Long> bedroomFuture = Future.future();
         Future<Long> bathroomFuture = Future.future();
+        Future<Long> longitudeFuture = Future.future();
+        Future<Long> latitudeFuture = Future.future();
         lastUpdatedTimestampIndex.update(rental.getId(), String.valueOf(rental.getLastUpdatedTimestamp().getTime() / 1000), lastUpdatedTimestampFuture.completer());
         moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime() / 1000), moveInDateFuture.completer());
         priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
         quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
         bedroomIndex.update(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
         bathroomIndex.update(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
+        longitudeIndex.update(rental.getId(), String.valueOf(rental.getLongitude()), longitudeFuture.completer());
+        latitudeIndex.update(rental.getId(), String.valueOf(rental.getLatitude()), latitudeFuture.completer());
 
-        CompositeFuture.all(moveInDateFuture, priceFuture, quantifierFuture, bedroomFuture, bathroomFuture).setHandler(res -> {
+        CompositeFuture.all(Arrays.asList(
+                moveInDateFuture,
+                priceFuture,
+                quantifierFuture,
+                bedroomFuture,
+                bathroomFuture,
+                longitudeFuture,
+                latitudeFuture
+        )).setHandler(res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture());
             } else {
@@ -186,6 +203,32 @@ public class RentalHandler {
         }
     }
 
+    public void searchMap(RoutingContext context) {
+        JsonObject searchInfo = context.getBodyAsJson();
+
+        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch(lastUpdatedTimestampIndex, NEG_INF, POS_INF);
+        RedisSearch longitudeSearch = new RedisContinuousSearch(longitudeIndex,
+                searchInfo.getString("lng_min"),
+                searchInfo.getString("lng_max"));
+        RedisSearch latitudeSearch = new RedisContinuousSearch(latitudeIndex,
+                searchInfo.getString("lat_min"),
+                searchInfo.getString("lat_max"));
+        RedisCompositeSearch mapSearch = new RedisCompositeSearch(lastUpdatedTimestampSearch, longitudeSearch, latitudeSearch);
+        mapSearch.exec(res1 -> {
+            if (res1.succeeded()) {
+                mapSearch.get(false, res2 -> {
+                    if (res2.succeeded()) {
+                        context.response().setStatusCode(200).end(Json.encodePrettily(res2.result()));
+                    } else {
+                        context.response().setStatusCode(500).end();
+                    }
+                });
+            } else {
+                context.response().setStatusCode(500).end();
+            }
+        });
+    }
+
     @SuppressWarnings("unchecked")
     public void search(RoutingContext context) {
         JsonObject searchInfo = context.getBodyAsJson();
@@ -205,9 +248,15 @@ public class RentalHandler {
                 searchInfo.getJsonArray("bedrooms", new JsonArray()).getList());
         RedisSearch bathroomSearch = new RedisCategoricalSearch(bathroomIndex,
                 searchInfo.getJsonArray("bathrooms", new JsonArray()).getList());
+        RedisSearch longitudeSearch = new RedisContinuousSearch(longitudeIndex,
+                searchInfo.getString("lng_min", NEG_INF),
+                searchInfo.getString("lng_max", POS_INF));
+        RedisSearch latitudeSearch = new RedisContinuousSearch(latitudeIndex,
+                searchInfo.getString("lat_min", NEG_INF),
+                searchInfo.getString("lat_max", POS_INF));
 
         RedisCompositeSearch redisCompositeSearch = getCompositeSearch(primary,
-                lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+                lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch, longitudeSearch, latitudeSearch);
         redisCompositeSearch.exec(res1 -> {
             if (res1.succeeded()) {
                 redisCompositeSearch.get(order.equals("asc"), res2 -> {
@@ -234,16 +283,18 @@ public class RentalHandler {
                                                     RedisSearch priceSearch,
                                                     RedisSearch quantifierSearch,
                                                     RedisSearch bedroomSearch,
-                                                    RedisSearch bathroomSearch) {
+                                                    RedisSearch bathroomSearch,
+                                                    RedisSearch longitudeSearch,
+                                                    RedisSearch latitudeSearch) {
         switch (primary) {
             case "last_updated_timestamp":
-                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch, longitudeSearch, latitudeSearch);
             case "move_in_date":
-                return new RedisCompositeSearch(moveInDateSearch, lastUpdatedTimestampSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+                return new RedisCompositeSearch(moveInDateSearch, lastUpdatedTimestampSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch, longitudeSearch, latitudeSearch);
             case "price":
-                return new RedisCompositeSearch(priceSearch, moveInDateSearch, lastUpdatedTimestampSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+                return new RedisCompositeSearch(priceSearch, moveInDateSearch, lastUpdatedTimestampSearch, quantifierSearch, bedroomSearch, bathroomSearch, longitudeSearch, latitudeSearch);
             default:
-                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch);
+                return new RedisCompositeSearch(lastUpdatedTimestampSearch, moveInDateSearch, priceSearch, quantifierSearch, bedroomSearch, bathroomSearch, longitudeSearch, latitudeSearch);
         }
     }
 
