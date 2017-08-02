@@ -63,7 +63,7 @@
                     </md-select>
                 </md-input-container>
 
-                <md-input-container md-no-float style="width:250px;margin-left:15px;">
+                <md-input-container md-no-float style="width:240px;margin-left:15px;">
                     <md-select ng-model="selectedBathrooms"
                                multiple
                                placeholder="Bathrooms">
@@ -132,10 +132,16 @@
                      ng-mouseleave="toggleMarkerColor($index, 'pink')">
                     <div class="img-container">
                         <a target="_self" ng-href="#/detail/{{rental.id}}">
-                            <img ng-repeat="slide in rental.imageIds" ng-init="slide_index=$index" ng-hide="!isCurrentSlideIndex(rental_index, slide_index)" ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}">
+                            <img ng-repeat="slide in rental.imageIds"
+                                 ng-init="slide_index=$index"
+                                 ng-hide="!isCurrentSlideIndex(rental_index, slide_index)"
+                                 ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}"
+                                 style="width:240px;">
                         </a>
-                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_24.png" ng-click="prevSlide(rental_index)">
-                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_24.png" ng-click="nextSlide(rental_index)">
+                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_white_24.png"
+                               ng-click="prevSlide(rental_index)">
+                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_white_24.png"
+                               ng-click="nextSlide(rental_index)">
                     </div>
                     <div class="content-container">
                         <div class="upper-container">

@@ -79,8 +79,8 @@
 }
 #main-left {
     /* width: 65%; */
-    width: calc(100vw - 600px);
-    height: calc(100vh - 125px);
+    width: calc(100vw - 570px);
+    height: calc(100vh - 120px);
 }
 #map-container {
     height: 100%;
@@ -94,10 +94,10 @@
 }
 #main-right {
     height: calc(100vh - 125px);
-    width: 580px;
+    width: 550px;
 }
 #item-scroll {
-    height: calc(100vh - 220px);
+    height: calc(100vh - 215px);
     overflow-y: scroll;
     overflow-x:hidden;
     /* padding-right: 0px; */
@@ -115,7 +115,7 @@
     border-color: #4169E1;
 }
 #item-scroll div.item-container div.img-container {
-    width: 55%;
+    width: 240px;
     height: 100%;
     float: left;
     background-color: #D3D3D3;
@@ -132,15 +132,15 @@
     z-index: 1;
     left: 0;
     bottom: 90px;
-    opacity: 0.4;
+    opacity: 0.8;
 }
 #item-scroll div.item-container div.img-container input.arrow-next {
     overflow:hidden;
     position:relative;
     z-index: 1;
-    left: 260px;
+    left: 185px;
     bottom: 90px;
-    opacity: 0.4;
+    opacity: 0.8;
 }
 #item-scroll div.item-container div.content-container {
     float: left;
@@ -149,7 +149,7 @@
     margin-left: 10px;
     margin-top: 15px;
     margin-bottom: 12px;
-    width: 230px;
+    width: 250px;
     padding-bottom: 10px;
     border-bottom-color: #D3D3D3;
     border-bottom-style: solid;
@@ -200,7 +200,7 @@
 }
 #item-scroll div.item-container div.content-container div.time-container {
     margin-top: 35px;
-    margin-left: 20px;
+    margin-left: 50px;
     font-size: 16px;
     text-align: right;
     float: left;
