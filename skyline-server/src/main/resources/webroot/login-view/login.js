@@ -10,7 +10,7 @@ angular.module('skyline-login', ['ngRoute'])
         .then(function successCallback(response) {
             $window.location.href = '/';
         }, function errorCallback(response) {
-            console.log("Fail");
+            $window.alert("User name and password not matched!");
         });
     }
 })

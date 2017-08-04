@@ -107,9 +107,9 @@ public class ServerVerticle extends AbstractVerticle {
         router.post("/api/private/rental").handler(rentalHandler::put);
 
         // Order is important, don't move the positions
-        router.route("/post-view/post.html").handler(sessionHandler);
-        router.route("/post-view/post.html").handler(userSessionHandler);
-        router.route("/post-view/post.html").handler(redirectAuthHandler);
+        router.route("/dashboard-view/dashboard.html").handler(sessionHandler);
+        router.route("/dashboard-view/dashboard.html").handler(userSessionHandler);
+        router.route("/dashboard-view/dashboard.html").handler(redirectAuthHandler);
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 
         return router;

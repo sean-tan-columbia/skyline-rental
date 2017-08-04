@@ -79,9 +79,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
                 rentalObj.isLiked = likedRentalSet.has(rentalObj.id);
                 rentalObj.age = getRentalAge(rentalObj.lastUpdatedTimestamp);
-                if (rentalObj.quantifier == "MONTH") {
-                    rentalObj.quantifier = "MTH";
-                }
                 if (rentalObj.isLiked) {
                     rentalObj.likedImg = "../asset/image/filled_heart_32.png";
                 } else {

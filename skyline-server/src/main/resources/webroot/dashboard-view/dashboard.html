@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skyline: Short Term Rentals</title>
+</head>
+<body ng-app="skyline-post">
+<div id="header">
+    <div id="header-top">
+        <div id="header-icon">
+            <label>Skyline</label>
+        </div>
+        <div id="header-menu">
+            <ul>
+                <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
+                <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
+                <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
+                <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
+                <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="dashboard" ng-controller="userDashboardController" style="width:100%;float:left;margin-top:10px;">
+    <div id="dashboard-left" style="float:left;width:25%;">
+        <div id="dashboard-me"
+             style="width:70%;height:350px;border-width:1px;border-color:#D3D3D3;border-style:solid;float:right;border-radius:4px;margin-right:15px;">
+            <div class="dashboard-me-info"
+                 style="height:200px;border-bottom-width:1px;border-bottom-color:#D3D3D3;border-bottom-style:solid;">
+                <div class="dashboard-me-photo" style="margin-top:15px;text-align:center;">
+                    <img src="../asset/image/user-icon-128.png">
+                </div>
+                <p class="dashboard-me-nickname" style="font-size:22px;text-align:center;">
+                    jtan
+                </p>
+            </div>
+            <div class="dashboard-me-contact" style="padding-top:10px;padding-left:10px;">
+                <p>Email:</p>
+                <p>WeChat:</p>
+            </div>
+        </div>
+        <div style="margin-left:150px;width:100%;height:20px;text-align:center;">
+            <a class="new-rental-button" href="#/post">+ Rental</a>
+        </div>
+    </div>
+    <div id="dashboard-middle" style="float:left;width:36%;margin-left:0.5%;height:1600px;">
+        <imagereader images="[]" files="[]" , posterId="{{posterId}}"></imagereader>
+    </div>
+    <div id="dashboard-right"
+         style="float:left;width:27%;margin-left:2.5%;padding-bottom:15px;border-width:1px;border-color:#D3D3D3;border-style:solid;border-radius:4px;">
+        <p style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding-left:15px;padding-bottom:15px;font-size:18px;">
+            Search My Posts:
+            <input style="margin-left:10px;height:25px;" ng-model="myPostSearch">
+        </p>
+        <div id="my-post-scroll" style="height:420px;overflow-y:scroll;overflow-x:hidden;">
+            <div id="dashboard-me-post">
+                <div class="my-post-container" style="margin-left:15px;margin-right:5px;">
+                    <table>
+                        <tr ng-repeat="rental in rentals | filter:myPostSearch">
+                            <td width="270px;"><a href="#/detail/{{rental.id}}" target="_blank"
+                                                  style="text-decoration: none;">{{rental.displayAddress}}</a></td>
+                            <td width="100px;">{{rental.displayCreatedTimestamp}}</td>
+                            <td width="20px;"><a href="#/edit/{{rental.id}}"><img src="../asset/image/edit-16.png"></a>
+                            </td>
+                            <td width="20px;"><a href="#/delete/{{rental.id}}"><img src="../asset/image/delete-16.png"></a>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

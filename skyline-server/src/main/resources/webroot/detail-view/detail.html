@@ -48,8 +48,10 @@
             <div class="info-left">
                 <div class="info-left-address">{{short_address}}</div>
                 <br>
-                <div style="margin-top: 15px; font-size: 15px;">Move-In: {{moveInDate}}</div>
-                <div style="margin-top: 15px; margin-left: 50px; font-size: 15px; color: grey">Posted 15min ago</div>
+                <div style="margin-top: 15px; font-size: 15px;">Move-in: {{moveInDate}}</div>
+                <div style="margin-top: 15px; margin-left: 50px; font-size: 15px; color: grey">Updated {{rentalAge}}
+                    ago
+                </div>
             </div>
             <div class="info-right">
                 <div>${{rental.price}}</div>
@@ -61,14 +63,14 @@
                 <div class="feature-item">
                     <img src="../asset/image/bed.png">
                     <div class="feature-text">
-                        <div style="float: left">1</div>
+                        <div style="float: left">{{bedroom}}</div>
                         <div style="color: grey; margin-left: 5px;">Bed</div>
                     </div>
                 </div>
                 <div class="feature-item">
                     <img src="../asset/image/bathtub.png">
                     <div class="feature-text">
-                        <div style="float: left">1</div>
+                        <div style="float: left">{{bathroom}}</div>
                         <div style="color: grey; margin-left: 5px;">Bath</div>
                     </div>
                 </div>

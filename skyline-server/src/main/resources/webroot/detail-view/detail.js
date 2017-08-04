@@ -9,6 +9,35 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
         $scope.rental = rentalObj
         $scope.slides = rentalObj.imageIds
+        $scope.rentalAge = getRentalAge(parseInt(rentalObj.lastUpdatedTimestamp));
+        switch (rentalObj.bedroom) {
+            case "STUDIO":
+                $scope.bedroom = "Studio";
+                break;
+            case "ONE":
+                $scope.bedroom = "1";
+                break;
+            case "TWO":
+                $scope.bedroom = "2";
+                break;
+            case "THREE":
+                $scope.bedroom = "3";
+                break;
+        }
+        switch (rentalObj.bathroom) {
+            case "SHARED":
+                $scope.bathroom = "Shared";
+                break;
+            case "ONE":
+                $scope.bathroom = "1";
+                break;
+            case "TWO":
+                $scope.bathroom = "2";
+                break;
+            case "THREE":
+                $scope.bathroom = "3";
+                break;
+        }
         $scope.parseAddress();
         $scope.parseDate();
     });
@@ -81,3 +110,14 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         }
     };
 });
+
+var getRentalAge = function(lastUpdatedTimestamp) {
+    diff = new Date().getTime() - lastUpdatedTimestamp;
+    if (diff < 3600 * 1000) {
+        return Math.floor(diff / 60000) + "min";
+    } else if (diff < 3600 * 24 * 1000) {
+        return Math.floor(diff / 3600000) + "hr";
+    } else {
+        return Math.floor(diff / (3600 * 24 * 1000)) + "d";
+    }
+}

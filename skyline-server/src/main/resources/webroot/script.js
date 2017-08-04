@@ -1,9 +1,9 @@
 angular.module("skyline-rental", ['ngRoute',
                                   'skyline-discover',
                                   'skyline-detail',
-                                  'skyline-post',
                                   'skyline-login',
-                                  'skyline-register' ])
+                                  'skyline-register',
+                                  'skyline-dashboard'])
 
 .config(['$locationProvider', '$routeProvider',
     function($location, $routeProvider) {
@@ -18,7 +18,10 @@ angular.module("skyline-rental", ['ngRoute',
             templateUrl: 'detail-view/detail.html',
         })
         .when('/post', {
-            templateUrl: 'post-view/post.html',
+            templateUrl: 'dashboard-view/dashboard.html',
+        })
+        .when('/edit/:rentalId', {
+            templateUrl: 'dashboard-view/dashboard.html',
         })
         .when('/login', {
             templateUrl: 'login-view/login.html',
