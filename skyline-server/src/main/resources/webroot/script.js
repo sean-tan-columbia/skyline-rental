@@ -1,6 +1,7 @@
 angular.module("skyline-rental", ['ngRoute',
                                   'skyline-discover',
                                   'skyline-detail',
+                                  'skyline-post',
                                   'skyline-login',
                                   'skyline-register',
                                   'skyline-dashboard'])
@@ -21,6 +22,9 @@ angular.module("skyline-rental", ['ngRoute',
             templateUrl: 'dashboard-view/dashboard.html',
         })
         .when('/edit/:rentalId', {
+            templateUrl: 'dashboard-view/dashboard.html',
+        })
+        .when('/delete/:rentalId', {
             templateUrl: 'dashboard-view/dashboard.html',
         })
         .when('/login', {

@@ -21,7 +21,8 @@
         </div>
     </div>
 </div>
-<div id="dashboard" ng-controller="userDashboardController" style="width:100%;float:left;margin-top:10px;">
+<div id="dashboard" ng-controller="userDashboardController"
+     style="width:100%;float:left;margin-top:10px;margin-bottom:100px;">
     <div id="dashboard-left" style="float:left;width:25%;">
         <div id="dashboard-me"
              style="width:70%;height:350px;border-width:1px;border-color:#D3D3D3;border-style:solid;float:right;border-radius:4px;margin-right:15px;">
@@ -39,16 +40,16 @@
                 <p>WeChat:</p>
             </div>
         </div>
-        <div style="margin-left:150px;width:100%;height:20px;text-align:center;">
-            <a class="new-rental-button" href="#/post">+ Rental</a>
+        <div style="margin-left:38%;width:100%;height:20px;text-align:center;">
+            <a class="new-rental-button" href="#/post">New</a>
         </div>
     </div>
     <div id="dashboard-middle" style="float:left;width:36%;margin-left:0.5%;height:1600px;">
-        <imagereader images="[]" files="[]" , posterId="{{posterId}}"></imagereader>
+        <imagereader images="[]" posterId="{{posterId}}"></imagereader>
     </div>
     <div id="dashboard-right"
          style="float:left;width:27%;margin-left:2.5%;padding-bottom:15px;border-width:1px;border-color:#D3D3D3;border-style:solid;border-radius:4px;">
-        <p style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding-left:15px;padding-bottom:15px;font-size:18px;">
+        <p style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding-left:15px;padding-bottom:15px;font-size:18px;font-family:Arial">
             Search My Posts:
             <input style="margin-left:10px;height:25px;" ng-model="myPostSearch">
         </p>
@@ -62,8 +63,11 @@
                             <td width="100px;">{{rental.displayCreatedTimestamp}}</td>
                             <td width="20px;"><a href="#/edit/{{rental.id}}"><img src="../asset/image/edit-16.png"></a>
                             </td>
-                            <td width="20px;"><a href="#/delete/{{rental.id}}"><img src="../asset/image/delete-16.png"></a>
-                            </td>
+                            <td width="20px;"><a href ng-click="deleteRental($index)"><img
+                                    src="../asset/image/delete-16.png"></a></td>
+                            <!--<td width="20px;">-->
+                            <!--<button ng-click="" style="background:url('../asset/image/delete-16.png') no-repeat;cursor:pointer;border:none;width:16px;height:16px;margin:0px;"></button>-->
+                            <!--</td>-->
                         </tr>
                     </table>
                 </div>

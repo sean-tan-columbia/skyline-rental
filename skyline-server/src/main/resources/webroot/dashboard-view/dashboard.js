@@ -1,14 +1,17 @@
 angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 
-.controller('userDashboardController', function ($scope, $http, config, $rootScope) {
-    console.log($rootScope.username);
+.controller('userDashboardController', function ($scope, $route, $http, config, $q, $window) {
     $scope.rentals = [];
-    $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
+    $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc")
+    .then(function(r1) {
         rentalIds = r1.data;
         for (i = 0; i < rentalIds.length; i++) {
             $http.get(config.serverUrl + "/api/public/rental/" + rentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
+                if (rentalObj.id == undefined) {
+                    return;
+                }
                 address_parts = rentalObj.address.split(",")
                 rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
                 rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
@@ -16,10 +19,52 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
             })
         }
     });
+    $scope.deleteRental = function(rentalIndex) {
+        rentalId = $scope.rentals[rentalIndex].id;
+        $http.delete(config.serverUrl + "/api/private/rental/" + rentalId)
+        .then(function(r) {
+            if (r.status == 200) {
+                gcstoken = r.data;
+                imageIds = $scope.rentals[rentalIndex].imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
+                $scope.deleteImages(gcstoken, imageIds, function() {
+                    if ($scope.rentals.length > 1) {
+                        $route.reload();
+                    } else {
+                        $window.location.href = '/';
+                    }
+                });
+            } else if (r.status == 202) {
+                console.log('Rental stays unchanged');
+            }
+        });
+    };
+    $scope.deleteImages = function(gcstoken, imageIds, callback) {
+        var promises = [];
+        for (i = 0; i < imageIds.length; i++) {
+            var p = $http({
+                url: config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + imageIds[i].trim(),
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + gcstoken,
+                           'Content-Type' : 'image/' + 'jpeg' },
+                transformRequest: []
+            });
+            promises.push(p);
+        }
+        $q.all(promises).then(function(results){
+            callback();
+        })
+    };
+    $scope.getAccessToken = function(callback) {
+        $http({ method: 'GET',
+                url: config.serverUrl + '/api/private/gcstoken',
+        }).then(function(response) {
+            callback(response.data);
+        });
+    };
 })
 
-.directive("imagereader", ['$http', '$q', 'NgMap', '$window', 'config', '$routeParams',
-                            function ($http, $q, NgMap, $window, config, $routeParams) {
+.directive("imagereader", ['$http', '$q', 'NgMap', '$window', 'config', '$routeParams', '$route',
+                            function ($http, $q, NgMap, $window, config, $routeParams, $route) {
     return {
         restrict: 'E',
         templateUrl: 'dashboard-view/rental-info.html',
@@ -44,7 +89,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 
                         scope.$apply(function() {
                             scope.images.push({'id': imageId, 'base64': compressedBase64, 'type': imageType});
-                            scope.files.push(base64ToArrayBuffer(compressedBase64));
+                            // scope.files.push(base64ToArrayBuffer(compressedBase64));
                         });
                     };
                     sourceImgObj.src = base64;
@@ -58,9 +103,14 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 $http.get(config.serverUrl + "/api/public/rental/" + rentalId)
                 .then(function(response) {
                     rentalObj = response.data
+                    if (rentalObj.id == undefined) {
+                        return;
+                    }
                     scope.rental = rentalObj;
                     scope.inputPrice = parseFloat(rentalObj.price);
                     scope.address = rentalObj.address;
+                    scope.lat = parseFloat(rentalObj.latitude);
+                    scope.lng = parseFloat(rentalObj.longitude);
                     scope.inputMoveInDate = new Date(parseInt(rentalObj.startDate));
                     scope.description = rentalObj.description;
                     if (rentalObj.endDate != undefined) {
@@ -103,65 +153,102 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                             break;
                     }
                     scope.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(",")
+                    scope.images = [];
                     for (i = 0; i < scope.imageIds.length; i++) {
+                        scope.images.push({});
+                    }
+                    for (i = 0; i < scope.imageIds.length; i++) {
+                        scope.existedImages.add(scope.imageIds[i]);
                         imageUrl = config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + scope.imageIds[i].trim();
-                        toBase64(imageUrl, function(base64){
+                        toBase64(i, imageUrl, function(imageIndex, base64){
                             scope.$apply(function() {
-                                scope.images.push({'id': scope.imageIds[i], 'base64': base64, 'type': 'jpeg'});
+                                scope.images[imageIndex] = {'id': scope.imageIds[imageIndex].trim(), 'base64': base64, 'type': 'jpeg'};
                             });
                         });
                     }
-                    console.log(scope.rental);
                 });
-            }
-            scope.posterId = 'jtan';
-            var posterHashids = new Hashids("SKYLINE_POSTER");
+            };
             if ($routeParams.rentalId != undefined) {
+                scope.existedImages = new Set();
+                scope.deletedImages = [];
                 scope.rentalId = $routeParams.rentalId;
                 scope.httpGetRental(scope.rentalId);
+                console.log(scope.rentalId);
             } else {
-                scope.rentalId = posterHashids.encode(hashCode(scope.posterId), Date.now());
-            }
-            console.log(scope.rentalId);
+                // TODO: Make sure hashids doesn't use '/'
+                var posterHashids = new Hashids("SKYLINE_POSTER");
+                $http.get("https://ipinfo.io")
+                .then(function(response) {
+                    ipinfo = response.data;
+                    console.log(ipinfo);
+                    scope.rentalId = posterHashids.encode(ip2int(ipinfo.ip), Date.now());
+                    console.log(scope.rentalId);
+                });
+            };
             scope.remove = function(index) {
+                if (scope.deletedImages != undefined) {
+                    scope.deletedImages.push(scope.images[index].id);
+                }
                 scope.images.splice(index, 1);
-            }
+            };
             scope.getAccessToken = function(callback) {
                 $http({ method: 'GET',
                         url: config.serverUrl + '/api/private/gcstoken',
                 }).then(function(response) {
-                    console.log(response.data)
                     callback(response.data);
                 });
-            }
-            scope.upload = function(oauth2) {
+            };
+            scope.deleteImages = function(gcstoken, imageIds, callback) {
                 var promises = [];
-                for (i = 0; i < scope.files.length; i++) {
+                for (i = 0; i < imageIds.length; i++) {
                     var p = $http({
-                        url: config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + scope.images[i].id,
+                        url: config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + imageIds[i].trim(),
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + gcstoken,
+                                   'Content-Type' : 'image/' + 'jpeg' },
+                        transformRequest: []
+                    });
+                    promises.push(p);
+                };
+                $q.all(promises).then(function(results){
+                    callback();
+                });
+            };
+            scope.uploadImages = function(oauth2, images, callback) {
+                var promises = [];
+                for (i = 0; i < images.length; i++) {
+                    if (scope.existedImages != undefined && scope.existedImages.has(images[i].id)) {
+                        continue;
+                    }
+                    var p = $http({
+                        url: config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + images[i].id,
                         method: 'PUT',
                         headers: {'Authorization': 'Bearer ' + oauth2,
-                                  'Content-Type' : 'image/' + scope.images[i].type},
-                        data: scope.files[i],
+                                  'Content-Type' : 'image/' + images[i].type},
+                        data: base64ToArrayBuffer(images[i].base64),
                         transformRequest: []
                     });
                     promises.push(p);
                 }
                 $q.all(promises).then(function(results){
-                    scope.postRental();
+                    // scope.postRental();
+                    callback();
                 })
             }
             scope.send = function() {
-                scope.getAccessToken(scope.upload);
+                scope.submitRental();
             }
-            scope.postRental = function() {
+            scope.submitRental = function() {
                 var imageIds = [];
                 scope.images.forEach(function(image){
                     imageIds.push({'id': image.id});
                 });
+                var move_out_date = undefined;
+                if (scope.inputMoveOutDate != undefined) {
+                    move_out_date = scope.inputMoveOutDate.getTime();
+                }
                 data = {
                     id           : scope.rentalId,
-                    posterId     : scope.posterId,
                     price        : scope.inputPrice,
                     quantifier   : parseInt(scope.selectedQuantifier),
                     rentalType   : '',
@@ -170,21 +257,41 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     lng          : scope.lng,
                     neighborhood : '',
                     move_in_date : scope.inputMoveInDate.getTime(),
-                    move_out_date: scope.inputMoveOutDate.getTime(),
+                    move_out_date: move_out_date,
                     bedroom      : parseInt(scope.selectedBedroom),
                     bathroom     : parseInt(scope.selectedBathroom),
                     image_ids    : imageIds,
                     description  : scope.description,
                 };
-                $http({ method: 'POST',
+                if ($routeParams.rentalId == undefined) {
+                    $http({ method: 'POST',
                         url: config.serverUrl + '/api/private/rental',
                         data: data
-                })
-                .then(function(response) {
-                    console.log('Post Success!');
-                    $window.location.href = '/';
-                });
+                    }).then(function(response) {
+                        if (response.status == 201) {
+                            gcstoken = response.data;
+                            scope.uploadImages(gcstoken, scope.images, function() { $route.reload(); });
+                        } else {
+                            console.log('Rental stays unchanged');
+                        }
+                    });
+                } else {
+                    $http({ method: 'PUT',
+                        url: config.serverUrl + '/api/private/rental/' + data.id,
+                        data: data
+                    }).then(function(response) {
+                        if (response.status == 201) {
+                            gcstoken = response.data;
+                            scope.uploadImages(gcstoken, scope.images, function() {
+                                scope.deleteImages(gcstoken, scope.deletedImages, function() { $route.reload(); });
+                            });
+                        } else if (response.status == 202) {
+                            console.log('Rental stays unchanged');
+                        }
+                    });
+                }
             }
+
             NgMap.getMap().then(function(map) {
                 scope.map = map;
             });
@@ -228,7 +335,7 @@ var base64ToArrayBuffer = function(base64) {
     return ia;
 };
 
-var toBase64 = function (url, callback, outputFormat) {
+var toBase64 = function (index, url, callback, outputFormat) {
     var img = new Image();
     img.crossOrigin = 'Anonymous';
     img.onload = function() {
@@ -239,7 +346,7 @@ var toBase64 = function (url, callback, outputFormat) {
         canvas.width = this.width;
         ctx.drawImage(this, 0, 0);
         dataURL = canvas.toDataURL("image/jpeg");
-        callback(dataURL);
+        callback(index, dataURL);
         canvas = null;
     };
     img.src = url;
@@ -248,3 +355,7 @@ var parseDate = function (unix_time) {
     var _date = new Date(parseInt(unix_time));
     return (_date.getMonth() + 1) + "/" + _date.getDate() + "/" + _date.getFullYear();
 };
+
+var ip2int = function(ip) {
+    return ip.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
+}

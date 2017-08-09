@@ -19,7 +19,7 @@
             </div>
             <div id="header-search">
                 <input type="text"
-                       ng-model="address"
+                       ng-model="targetAddress"
                        places-auto-complete
                        component-restrictions="{country:'us'}"
                        types="['establishment']"
@@ -37,8 +37,9 @@
         </div>
         <div id="header-down">
             <div class="layout layout-row layout-margin">
-                <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-in"
-                               style="width:150px;margin-top:6px;"></md-datepicker>
+                <md-input-container md-no-float>
+                    <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-in"></md-datepicker>
+                </md-input-container>
                 <md-input-container md-no-float style="width:120px;margin-left:10px;">
                     <input type="number" step="10" ng-model="inputPriceMin"
                            min="0" max="10000" placeholder="$ Min"/>
@@ -54,7 +55,7 @@
                     </md-select>
                 </md-input-container>
 
-                <md-input-container md-no-float style="width:240px;margin-left:15px;">
+                <md-input-container md-no-float style="width:10%;margin-left:15px;">
                     <md-select ng-model="selectedBedrooms"
                                multiple
                                placeholder="Bedrooms">
@@ -64,7 +65,7 @@
                     </md-select>
                 </md-input-container>
 
-                <md-input-container md-no-float style="width:240px;margin-left:15px;">
+                <md-input-container md-no-float style="width:10%;margin-left:15px;">
                     <md-select ng-model="selectedBathrooms"
                                multiple
                                placeholder="Bathrooms">
@@ -110,19 +111,24 @@
         </div>
         <div id="main-right" class="floating">
             <div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">
+                <input type="submit"
+                       id="map-back-button"
+                       ng-click="returnToPrevMap()"
+                       ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"
+                       value="Back to Prev Map View">
                 <select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"
                         ng-init="search.selectedSorter='latest'"
-                        style="border:1px solid #ccc;font-size: 16px; height:30px; width:160px;">
+                        style="border:1px solid #ccc;font-size: 15px; height:30px; width:160px;margin-left:30px;">
                     <option value="latest" ng-selected="true">Latest</option>
                     <option value="expensive">Expensive</option>
                     <option value="cheap">Cheap</option>
                 </select>
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
                              class="md-primary"
-                             style="margin-top:0px;margin-bottom:0px;margin-left:50px;"
+                             style="margin-top:0px;margin-bottom:0px;margin-left:30px;"
                              ng-change="search()">
-                    Favourites
-                    <p style="display:inline;margin-left:60px;font-size:16px;">{{totalIds}} results</p>
+                    Saved
+                    <!--<p style="display:inline;margin-left:30px;font-size:16px;">{{totalIds}} results</p>-->
                 </md-checkbox>
             </div>
             <div id="item-scroll">
@@ -171,13 +177,17 @@
                 </div>
             </div>
             <div id="navi">
-                <ul>
+                <ul style="float:left">
                     <li class="prev"><a ng-click="prevPages()"><span>Prev</span></a></li>
                     <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}" >
                         <a ng-click="selectPage(page)" >{{page}}</a>
                     </li>
                     <li class="next"><a ng-click="nextPages()"><span>Next</span></a></li>
+                    <div style="margin-top:6px;">
+                        <p style="display:inline;margin-left:50px;font-size:18px;">{{totalIds}} results</p>
+                    </div>
                 </ul>
+
             </div>
         </div>
     </div>

@@ -11,6 +11,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.markerIcons = [];
     $scope.pageSize = 20;
     $scope.searchParams = {};
+    $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
+    $scope.isSingleLoc = false;
     $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
         rentalIds = r1.data;
         $scope.getRentalsWithIds(rentalIds);
@@ -74,6 +76,9 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
+                if (rentalObj.id == undefined) {
+                    return;
+                }
                 rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
                 rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
@@ -210,6 +215,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     });
     $scope.submitSearch = function() {
         $scope.search.showLiked = false;
+        $scope.isSingleLoc = false;
         $scope.resetSearchParams();
         if ($scope.inputMoveInDate != undefined) {
             $scope.searchParams['move_in_date'] = ($scope.inputMoveInDate/1000).toString();
@@ -236,12 +242,13 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 url: config.serverUrl + '/api/public/search',
                 data: $scope.searchParams
         }).then(function(r) {
-            console.log(r.data);
+            // console.log(r.data);
             rentalIds = r.data;
             $scope.getRentalsWithIds(rentalIds);
         });
     };
     $scope.searchLoc = function(evt, rentalObj) {
+        $scope.isSingleLoc = true;
         var mapSearchParams = {};
         pos_delta = 0.0000001;
         mapSearchParams['lng_min'] = (parseFloat(rentalObj.longitude) - pos_delta).toString();
@@ -261,7 +268,10 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         if ($scope.map == undefined) {
             return;
         }
+        $scope.isSingleLoc = false;
+        $scope.saveSearchParams();
         $scope.search.showLiked = false;
+        var center = $scope.map.getCenter();
         var bounds = $scope.map.getBounds();
         $scope.searchParams['lng_min'] = bounds.getSouthWest().lng().toString();
         $scope.searchParams['lng_max'] = bounds.getNorthEast().lng().toString();
@@ -287,6 +297,35 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.selectedQuantifier = "0";
         $scope.resetSearchParams();
         $scope.search();
+    };
+    $scope.saveSearchParams = function() {
+        var center = $scope.map.getCenter();
+        var zoom = $scope.map.getZoom();
+        var mapParams = {};
+        mapParams['map_center'] = {'lat': center.lat(), 'lng': center.lng()};
+        mapParams['map_zoom'] = zoom;
+        if ($scope.mapParamStack.length >= 10) {
+            $scope.mapParamStack.shift();
+        }
+        $scope.mapParamStack.push(mapParams);
+    };
+    $scope.returnToPrevMap = function() {
+        if ($scope.isSingleLoc) {
+            $scope.search();
+            $scope.isSingleLoc = false;
+            return;
+        }
+        $scope.targetAddress = undefined;
+        if ($scope.mapParamStack.length == 0) {
+            return;
+        }
+        currMapParams = $scope.mapParamStack.pop();
+        if ($scope.mapParamStack.length == 0) {
+            return;
+        }
+        prevMapParams = $scope.mapParamStack.pop();
+        $scope.map.setCenter(prevMapParams['map_center']);
+        $scope.map.setZoom(prevMapParams['map_zoom']);
     };
     /* <- Search */
     NgMap.getMap('ng-map').then(function(map) {

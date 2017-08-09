@@ -116,7 +116,7 @@
     display: block;
     margin: auto;
     margin-top: 10px;
-    height: 300px;
+    height: 400px;
     border-style: solid;
     border-color: #D3D3D3;
     border-width: 1px;
@@ -129,8 +129,7 @@
     Post button
 */
 #post-button-wrapper {
-    width: 550px;
-    margin-left: 10px;
+    width: 100%;
 }
 .post-button {
     display: block;
@@ -139,9 +138,9 @@
     background-color: white;
     color: #4169E1;
     border: 2px solid #4169E1;
-    border-radius: 2px;
+    border-radius: 4px;
     height:45px;
-    width:600px;
+    width:80%;
 }
 .post-button:hover {
     background-color: #4169E1;
