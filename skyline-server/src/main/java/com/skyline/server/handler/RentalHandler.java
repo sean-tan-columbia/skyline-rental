@@ -14,7 +14,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.op.RangeOptions;
 
