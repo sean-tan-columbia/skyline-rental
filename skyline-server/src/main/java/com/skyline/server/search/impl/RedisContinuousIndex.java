@@ -20,8 +20,18 @@ public class RedisContinuousIndex implements RedisIndex {
         this.name = INDEX_KEY_BASE + indexName;
     }
 
-    public void update(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
+    public void add(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
         redisClient.zadd(name, Double.valueOf(val), key, res -> {
+            if (res.succeeded()) {
+                resultHandler.handle(Future.succeededFuture(res.result()));
+            } else {
+                resultHandler.handle(Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
+    public void del(String key, Handler<AsyncResult<Long>> resultHandler) {
+        redisClient.zrem(name, key, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(res.result()));
             } else {

@@ -11,6 +11,7 @@ import io.vertx.ext.web.sstore.impl.SessionImpl;
 import io.vertx.redis.RedisClient;
 import io.vertx.core.buffer.Buffer;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -131,6 +132,12 @@ public class RedisSessionStoreImpl implements RedisSessionStore {
 
     public void close() {
         this.random.close();
+    }
+
+    private void printData(Session session) {
+        for (Map.Entry<String, Object> entry : session.data().entrySet()) {
+            System.out.println(entry.getKey() + ":" + entry.getValue());
+        }
     }
 
 }

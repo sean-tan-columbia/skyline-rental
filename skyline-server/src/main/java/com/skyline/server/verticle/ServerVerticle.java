@@ -44,7 +44,8 @@ public class ServerVerticle extends AbstractVerticle {
         this.redisClient = RedisClient.create(vertx, new RedisOptions()
                 .setHost(config.getRedisHost())
                 .setAuth(config.getRedisAuth()));
-        this.rentalHandler = new RentalHandler(redisClient);
+        this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
+        this.rentalHandler = new RentalHandler(redisClient, gcsAuthHandler);
 
         this.jdbcClient = JDBCClient.createShared(vertx, new JsonObject()
                 .put("url", "jdbc:postgresql://" + config.getPostgresHost() + "/" + config.getPostgresName())
@@ -53,7 +54,6 @@ public class ServerVerticle extends AbstractVerticle {
                 .put("driver_class", config.getPostgresDriver()));
         this.jdbcAuthProvider = createJdbcAuthProvider();
         this.userAuthHandler = new UserAuthHandler(this.jdbcAuthProvider, this.jdbcClient);
-        this.gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
@@ -105,6 +105,8 @@ public class ServerVerticle extends AbstractVerticle {
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
         router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
         router.post("/api/private/rental").handler(rentalHandler::put);
+        router.put("/api/private/rental/:rentalId").handler(rentalHandler::update);
+        router.delete("/api/private/rental/:rentalId").handler(rentalHandler::delete);
 
         // Order is important, don't move the positions
         router.route("/dashboard-view/dashboard.html").handler(sessionHandler);

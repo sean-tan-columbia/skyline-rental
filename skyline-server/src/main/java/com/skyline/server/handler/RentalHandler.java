@@ -13,11 +13,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.op.RangeOptions;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +33,7 @@ public class RentalHandler {
     private final static String SEARCH_KEY_BASE = "data.redis.index:";
     private final static String NEG_INF = "-inf";
     private final static String POS_INF = "+inf";
+    private final static String SESSION_USERNAME = "username";
     private final RedisContinuousIndex lastUpdatedTimestampIndex;
     private final RedisContinuousIndex moveInDateIndex;
     private final RedisContinuousIndex priceIndex;
@@ -38,35 +42,49 @@ public class RentalHandler {
     private final RedisCategoricalIndex bathroomIndex;
     private final RedisContinuousIndex latitudeIndex;
     private final RedisContinuousIndex longitudeIndex;
-    private final RedisClient client;
+    private final RedisClient redisClient;
+    private final GCSAuthHandler gcsAuthHandler;
 
-    public RentalHandler(RedisClient client) {
-        this.lastUpdatedTimestampIndex = new RedisContinuousIndex("lastUpdatedTimestamp", client);
-        this.moveInDateIndex = new RedisContinuousIndex("moveInDate", client);
-        this.priceIndex = new RedisContinuousIndex("price", client);
-        this.quantifierIndex = new RedisCategoricalIndex("quantifier", client);
-        this.bedroomIndex = new RedisCategoricalIndex("bedroom", client);
-        this.bathroomIndex = new RedisCategoricalIndex("bathroom", client);
-        this.latitudeIndex = new RedisContinuousIndex("latitude", client);
-        this.longitudeIndex = new RedisContinuousIndex("longitude", client);
-        this.client = client;
+    public RentalHandler(RedisClient redisClient, GCSAuthHandler gcsAuthHandler) {
+        this.lastUpdatedTimestampIndex = new RedisContinuousIndex("lastUpdatedTimestamp", redisClient);
+        this.moveInDateIndex = new RedisContinuousIndex("moveInDate", redisClient);
+        this.priceIndex = new RedisContinuousIndex("price", redisClient);
+        this.quantifierIndex = new RedisCategoricalIndex("quantifier", redisClient);
+        this.bedroomIndex = new RedisCategoricalIndex("bedroom", redisClient);
+        this.bathroomIndex = new RedisCategoricalIndex("bathroom", redisClient);
+        this.latitudeIndex = new RedisContinuousIndex("latitude", redisClient);
+        this.longitudeIndex = new RedisContinuousIndex("longitude", redisClient);
+        this.redisClient = redisClient;
+        this.gcsAuthHandler = gcsAuthHandler;
     }
 
     public void put(RoutingContext context) {
+        Session session = context.session();
+        if (session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(403).end();
+        }
         JsonObject rentalInfo = context.getBodyAsJson();
         Rental rental;
         try {
-            rental = mapToRental(rentalInfo);
+            rental = mapToRental(rentalInfo).setPosterId(session.get(SESSION_USERNAME));
         } catch (Exception e) {
             LOG.error(e.getCause());
             return;
         }
         JsonObject rentalJson = new JsonObject(Json.encode(rental));
-        client.hmset(RENTAL_KEY_BASE + rental.getId(), rentalJson, r -> {
-            if (r.succeeded()) {
-                updateIndex(rental, res -> {
-                    context.response().setStatusCode(201).end();
-                    LOG.info("Inserted Rental " + rentalJson.getString("id"));
+        redisClient.hmset(RENTAL_KEY_BASE + rental.getId(), rentalJson, r1 -> {
+            if (r1.succeeded()) {
+                addRentalToIndices(rental, r2 -> {
+                    if (r2.succeeded()) {
+                        gcsAuthHandler.getAccessToken(r3 -> {
+                            if (r3.succeeded()) {
+                                context.response().setStatusCode(201).end(Json.encodePrettily(r3.result()));
+                            } else {
+                                context.response().setStatusCode(500).end();
+                            }
+                        });
+                        LOG.info("Inserted Rental " + rentalJson.getString("id"));
+                    }
                 });
             } else {
                 context.response().setStatusCode(500).end();
@@ -76,7 +94,7 @@ public class RentalHandler {
     }
 
     private Rental mapToRental(JsonObject rentalInfo) {
-        Rental rental = new Rental(rentalInfo.getString("id"), rentalInfo.getString("posterId"));
+        Rental rental = new Rental(rentalInfo.getString("id"));
         if (rentalInfo.getLong("move_out_date") != null) {
             rental.setEndDate(new Date(rentalInfo.getLong("move_out_date")));
         }
@@ -95,7 +113,7 @@ public class RentalHandler {
                 .setDescription(rentalInfo.getString("description", ""));
     }
 
-    private void updateIndex(Rental rental, Handler<AsyncResult<Long>> resultHandler) {
+    private void addRentalToIndices(Rental rental, Handler<AsyncResult<Long>> resultHandler) {
         Future<Long> lastUpdatedTimestampFuture = Future.future();
         Future<Long> moveInDateFuture = Future.future();
         Future<Long> priceFuture = Future.future();
@@ -104,14 +122,14 @@ public class RentalHandler {
         Future<Long> bathroomFuture = Future.future();
         Future<Long> longitudeFuture = Future.future();
         Future<Long> latitudeFuture = Future.future();
-        lastUpdatedTimestampIndex.update(rental.getId(), String.valueOf(rental.getLastUpdatedTimestamp().getTime() / 1000), lastUpdatedTimestampFuture.completer());
-        moveInDateIndex.update(rental.getId(), String.valueOf(rental.getStartDate().getTime() / 1000), moveInDateFuture.completer());
-        priceIndex.update(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
-        quantifierIndex.update(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
-        bedroomIndex.update(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
-        bathroomIndex.update(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
-        longitudeIndex.update(rental.getId(), String.valueOf(rental.getLongitude()), longitudeFuture.completer());
-        latitudeIndex.update(rental.getId(), String.valueOf(rental.getLatitude()), latitudeFuture.completer());
+        lastUpdatedTimestampIndex.add(rental.getId(), String.valueOf(rental.getLastUpdatedTimestamp().getTime() / 1000), lastUpdatedTimestampFuture.completer());
+        moveInDateIndex.add(rental.getId(), String.valueOf(rental.getStartDate().getTime() / 1000), moveInDateFuture.completer());
+        priceIndex.add(rental.getId(), String.valueOf(rental.getPrice()), priceFuture.completer());
+        quantifierIndex.add(rental.getId(), String.valueOf(rental.getQuantifier().getVal()), quantifierFuture.completer());
+        bedroomIndex.add(rental.getId(), String.valueOf(rental.getBedroom().getVal()), bedroomFuture.completer());
+        bathroomIndex.add(rental.getId(), String.valueOf(rental.getBathroom().getVal()), bathroomFuture.completer());
+        longitudeIndex.add(rental.getId(), String.valueOf(rental.getLongitude()), longitudeFuture.completer());
+        latitudeIndex.add(rental.getId(), String.valueOf(rental.getLatitude()), latitudeFuture.completer());
 
         CompositeFuture.all(Arrays.asList(
                 moveInDateFuture,
@@ -136,9 +154,8 @@ public class RentalHandler {
             context.response().setStatusCode(400).end();
             return;
         }
-        client.hgetall(RENTAL_KEY_BASE + rentalId, r -> {
+        redisClient.hgetall(RENTAL_KEY_BASE + rentalId, r -> {
             if (r.succeeded()) {
-                LOG.info("Received Rental " + rentalId);
                 context.response()
                         .putHeader("content-type", "application/json")
                         .putHeader("Access-Control-Allow-Origin", "*")
@@ -150,17 +167,101 @@ public class RentalHandler {
         });
     }
 
-    public void getMax(RoutingContext context) {
-        client.keys(RENTAL_KEY_BASE + "*", r -> {
-            if (r.succeeded()) {
-                context.response()
-                        .putHeader("content-type", "application/json")
-                        .putHeader("Access-Control-Allow-Origin", "*")
-                        .end(Json.encodePrettily(r.result().stream()
-                                .map(id -> id.toString().split(":")[1])
-                                .collect(Collectors.toList())));
+    public void delete(RoutingContext context) {
+        String rentalId = context.request().getParam("rentalId");
+        if (rentalId == null) {
+            context.response().setStatusCode(400).end();
+            return;
+        }
+        redisClient.hgetall(RENTAL_KEY_BASE + rentalId, r1 -> {
+            if (r1.succeeded()) {
+                Session session = context.session();
+                String username = session.get(SESSION_USERNAME);
+                if (username == null || !username.equals(r1.result().getString("posterId"))) {
+                    LOG.warn("Username and posterId not matched for Rental: " + rentalId);
+                    context.response().setStatusCode(202).end();
+                } else {
+                    redisClient.del(RENTAL_KEY_BASE + rentalId, r2 -> {
+                        if (r2.succeeded()) {
+                            delRentalFromIndices(rentalId, r3 -> {
+                                if (r3.succeeded()) {
+                                    gcsAuthHandler.getAccessToken(r4 -> {
+                                        if (r4.succeeded()) {
+                                            context.response().setStatusCode(200).end(Json.encodePrettily(r4.result()));
+                                        } else {
+                                            context.response().setStatusCode(500).end();
+                                        }
+                                    });
+                                    LOG.info("Deleted Rental " + rentalId);
+                                }
+                            });
+                        } else {
+                            LOG.info("Failed to delete Rental " + rentalId);
+                            context.response().setStatusCode(202).end();
+                        }
+                    });
+                }
             } else {
-                context.response().setStatusCode(500).end();
+                LOG.error("Failed to delete " + rentalId);
+                context.response().setStatusCode(202).end();
+            }
+        });
+    }
+
+    private void delRentalFromIndices(String rentalId, Handler<AsyncResult<Long>> resultHandler) {
+        Future<Long> lastUpdatedTimestampFuture = Future.future();
+        Future<Long> moveInDateFuture = Future.future();
+        Future<Long> priceFuture = Future.future();
+        Future<Long> quantifierFuture = Future.future();
+        Future<Long> bedroomFuture = Future.future();
+        Future<Long> bathroomFuture = Future.future();
+        Future<Long> longitudeFuture = Future.future();
+        Future<Long> latitudeFuture = Future.future();
+        lastUpdatedTimestampIndex.del(rentalId, lastUpdatedTimestampFuture.completer());
+        moveInDateIndex.del(rentalId, moveInDateFuture.completer());
+        priceIndex.del(rentalId, priceFuture.completer());
+        quantifierIndex.del(rentalId, quantifierFuture.completer());
+        bedroomIndex.del(rentalId, bedroomFuture.completer());
+        bathroomIndex.del(rentalId, bathroomFuture.completer());
+        longitudeIndex.del(rentalId, longitudeFuture.completer());
+        latitudeIndex.del(rentalId, latitudeFuture.completer());
+
+        CompositeFuture.all(Arrays.asList(
+                moveInDateFuture,
+                priceFuture,
+                quantifierFuture,
+                bedroomFuture,
+                bathroomFuture,
+                longitudeFuture,
+                latitudeFuture
+        )).setHandler(res -> {
+            if (res.succeeded()) {
+                resultHandler.handle(Future.succeededFuture());
+            } else {
+                resultHandler.handle(Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
+    public void update(RoutingContext context) {
+        String rentalId = context.request().getParam("rentalId");
+        if (rentalId == null) {
+            context.response().setStatusCode(400).end();
+            return;
+        }
+        redisClient.hgetall(RENTAL_KEY_BASE + rentalId, r1 -> {
+            if (r1.succeeded()) {
+                Session session = context.session();
+                String username = session.get(SESSION_USERNAME);
+                if (username == null || !username.equals(r1.result().getString("posterId"))) {
+                    LOG.warn("Username and posterId not matched for Rental: " + rentalId);
+                    context.response().setStatusCode(202).end();
+                } else {
+                    put(context);
+                }
+            } else {
+                LOG.error("Failed to update " + rentalId);
+                context.response().setStatusCode(202).end();
             }
         });
     }
@@ -181,7 +282,7 @@ public class RentalHandler {
 
     private void sort(RoutingContext context, String sorter, Boolean order) {
         if (order) { // Ascending
-            client.zrange(SEARCH_KEY_BASE + sorter, 0, -1, r -> {
+            redisClient.zrange(SEARCH_KEY_BASE + sorter, 0, -1, r -> {
                 if (r.succeeded()) {
                     context.response().putHeader("content-type", "application/json")
                             .putHeader("Access-Control-Allow-Origin", "*")
@@ -191,7 +292,7 @@ public class RentalHandler {
                 }
             });
         } else {
-            client.zrevrange(SEARCH_KEY_BASE + sorter, 0, -1, RangeOptions.NONE, r -> {
+            redisClient.zrevrange(SEARCH_KEY_BASE + sorter, 0, -1, RangeOptions.NONE, r -> {
                 if (r.succeeded()) {
                     context.response().putHeader("content-type", "application/json")
                             .putHeader("Access-Control-Allow-Origin", "*")
@@ -206,11 +307,13 @@ public class RentalHandler {
     public void searchMap(RoutingContext context) {
         JsonObject searchInfo = context.getBodyAsJson();
 
-        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch(lastUpdatedTimestampIndex, NEG_INF, POS_INF);
-        RedisSearch longitudeSearch = new RedisContinuousSearch(longitudeIndex,
+        String searchId = UUID.randomUUID().toString();
+        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch("lastUpdatedTimestampSearch:" + searchId,
+                lastUpdatedTimestampIndex, NEG_INF, POS_INF);
+        RedisSearch longitudeSearch = new RedisContinuousSearch("longitudeSearch:" + searchId, longitudeIndex,
                 searchInfo.getString("lng_min"),
                 searchInfo.getString("lng_max"));
-        RedisSearch latitudeSearch = new RedisContinuousSearch(latitudeIndex,
+        RedisSearch latitudeSearch = new RedisContinuousSearch("latitudeSearch:" + searchId, latitudeIndex,
                 searchInfo.getString("lat_min"),
                 searchInfo.getString("lat_max"));
         RedisCompositeSearch mapSearch = new RedisCompositeSearch(lastUpdatedTimestampSearch, longitudeSearch, latitudeSearch);
@@ -226,6 +329,11 @@ public class RentalHandler {
             } else {
                 context.response().setStatusCode(500).end();
             }
+            mapSearch.del(res3 -> {
+                if (res3.failed()) {
+                    LOG.error(res3.cause().getMessage());
+                }
+            });
         });
     }
 
@@ -233,25 +341,27 @@ public class RentalHandler {
     public void search(RoutingContext context) {
         JsonObject searchInfo = context.getBodyAsJson();
 
+        String searchId = UUID.randomUUID().toString();
         String primary = searchInfo.getString("primary", "last_updated_timestamp");
         String order = searchInfo.getString("order", "desc");
-        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch(lastUpdatedTimestampIndex, NEG_INF, POS_INF);
-        RedisSearch moveInDateSearch = new RedisContinuousSearch(moveInDateIndex,
+        RedisSearch lastUpdatedTimestampSearch = new RedisContinuousSearch("lastUpdatedTimestampSearch:" + searchId,
+                lastUpdatedTimestampIndex, NEG_INF, POS_INF);
+        RedisSearch moveInDateSearch = new RedisContinuousSearch("moveInDateSearch:" + searchId, moveInDateIndex,
                 NEG_INF, // Apartment available date should be before the user-input move-in date
                 searchInfo.getString("move_in_date", POS_INF));
-        RedisSearch priceSearch = new RedisContinuousSearch(priceIndex,
+        RedisSearch priceSearch = new RedisContinuousSearch("priceSearch:" + searchId, priceIndex,
                 searchInfo.getString("price_min", NEG_INF),
                 searchInfo.getString("price_max", POS_INF));
-        RedisSearch quantifierSearch = new RedisCategoricalSearch(quantifierIndex,
+        RedisSearch quantifierSearch = new RedisCategoricalSearch("quantifierSearch:" + searchId, quantifierIndex,
                 searchInfo.getJsonArray("quantifiers", new JsonArray()).getList());
-        RedisSearch bedroomSearch = new RedisCategoricalSearch(bedroomIndex,
+        RedisSearch bedroomSearch = new RedisCategoricalSearch("bedroomSearch:" + searchId, bedroomIndex,
                 searchInfo.getJsonArray("bedrooms", new JsonArray()).getList());
-        RedisSearch bathroomSearch = new RedisCategoricalSearch(bathroomIndex,
+        RedisSearch bathroomSearch = new RedisCategoricalSearch("bathroomSearch:" + searchId, bathroomIndex,
                 searchInfo.getJsonArray("bathrooms", new JsonArray()).getList());
-        RedisSearch longitudeSearch = new RedisContinuousSearch(longitudeIndex,
+        RedisSearch longitudeSearch = new RedisContinuousSearch("longitudeSearch:" + searchId, longitudeIndex,
                 searchInfo.getString("lng_min", NEG_INF),
                 searchInfo.getString("lng_max", POS_INF));
-        RedisSearch latitudeSearch = new RedisContinuousSearch(latitudeIndex,
+        RedisSearch latitudeSearch = new RedisContinuousSearch("latitudeSearch:" + searchId, latitudeIndex,
                 searchInfo.getString("lat_min", NEG_INF),
                 searchInfo.getString("lat_max", POS_INF));
 
@@ -266,14 +376,14 @@ public class RentalHandler {
                         context.response().setStatusCode(500).end();
                     }
                 });
-                redisCompositeSearch.del(res3 -> {
-                    if (res3.failed()) {
-                        LOG.error(res3.cause().getMessage());
-                    }
-                });
             } else {
                 context.response().setStatusCode(500).end();
             }
+            redisCompositeSearch.del(res3 -> {
+                if (res3.failed()) {
+                    LOG.error(res3.cause().getMessage());
+                }
+            });
         });
     }
 

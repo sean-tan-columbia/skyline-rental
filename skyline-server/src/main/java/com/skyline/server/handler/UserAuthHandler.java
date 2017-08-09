@@ -8,6 +8,7 @@ import io.vertx.ext.auth.jdbc.JDBCAuth;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 
 /**
  * Created by jtan on 6/26/17.
@@ -36,6 +37,8 @@ public class UserAuthHandler {
                 return;
             }
             LOG.info(credentials.getString("username") + " login!");
+            Session session = context.session();
+            session.put("username", credentials.getString("username"));
             context.setUser(login.result());
             context.response()
                     .putHeader("content-type", "application/json")

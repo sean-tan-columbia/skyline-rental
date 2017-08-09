@@ -6,7 +6,9 @@ import io.vertx.redis.RedisClient;
 
 public interface RedisIndex {
 
-    void update(String key, String val, Handler<AsyncResult<Long>> resultHandler);
+    void add(String key, String val, Handler<AsyncResult<Long>> resultHandler);
+
+    void del(String key, Handler<AsyncResult<Long>> resultHandler);
 
     RedisClient getRedisClient();
 

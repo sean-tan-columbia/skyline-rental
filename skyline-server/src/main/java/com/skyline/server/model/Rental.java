@@ -11,7 +11,7 @@ public class Rental {
 
     private final String id;
     private final Date createdTimestamp;
-    private final String posterId;
+    private String posterId;
     private RentalType rentalType;
     private String address;
     private double latitude;
@@ -28,9 +28,8 @@ public class Rental {
     private Bedroom bedroom;
     private Bathroom bathroom;
 
-    public Rental(String id, String posterId) {
+    public Rental(String id) {
         this.id = id;
-        this.posterId = posterId;
         this.createdTimestamp = new Timestamp(System.currentTimeMillis());
         this.lastUpdatedTimestamp = this.createdTimestamp;
         this.status = Status.ACTIVE;
@@ -143,6 +142,11 @@ public class Rental {
         return format.format(this.createdTimestamp);
         */
         return this.createdTimestamp;
+    }
+
+    public Rental setPosterId(String posterId) {
+        this.posterId = posterId;
+        return this;
     }
 
     public String getPosterId() {

@@ -2,9 +2,13 @@ package com.skyline.server.search.impl;
 
 import com.skyline.server.search.RedisIndex;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.redis.RedisClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RedisCategoricalIndex implements RedisIndex {
 
@@ -17,13 +21,36 @@ public class RedisCategoricalIndex implements RedisIndex {
         this.name = INDEX_KEY_BASE + indexName;
     }
 
-    public void update(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
+    public void add(String key, String val, Handler<AsyncResult<Long>> resultHandler) {
         // Inverted Index: data.redis.index:bedroom:0 -> rentalId
         redisClient.sadd(name + ":" + val, key, res -> {
             if (res.succeeded()) {
                 resultHandler.handle(Future.succeededFuture(res.result()));
             } else {
                 resultHandler.handle(Future.failedFuture(res.cause()));
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    public void del(String key, Handler<AsyncResult<Long>> resultHandler) {
+        redisClient.keys(name + ":*", r1 -> {
+            if (r1.succeeded()) {
+                List<Future> results = new ArrayList<>();
+                r1.result().getList().forEach(s -> {
+                    Future<Long> future = Future.future();
+                    redisClient.srem(s.toString(), key, future.completer());
+                    results.add(future);
+                });
+                CompositeFuture.all(results).setHandler(r2 -> {
+                    if (r2.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(r2.cause()));
+                    }
+                });
+            } else {
+                resultHandler.handle(Future.failedFuture(r1.cause()));
             }
         });
     }
