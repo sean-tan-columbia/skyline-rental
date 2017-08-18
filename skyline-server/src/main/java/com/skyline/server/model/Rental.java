@@ -1,16 +1,25 @@
 package com.skyline.server.model;
 
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.shareddata.impl.ClusterSerializable;
+
+import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
 /**
  * Created by jtan on 6/3/17.
  */
-public class Rental {
+public class Rental implements ClusterSerializable {
 
-    private final String id;
-    private final Date createdTimestamp;
+    private static final Charset UTF8 = Charset.forName("UTF-8");
+    private String id;
+    private Date createdTimestamp;
     private String posterId;
     private RentalType rentalType;
     private String address;
@@ -28,12 +37,16 @@ public class Rental {
     private Bedroom bedroom;
     private Bathroom bathroom;
 
+    public Rental() {
+        this.imageIds = new ArrayList<>();
+    }
+
     public Rental(String id) {
         this.id = id;
-        this.createdTimestamp = new Timestamp(System.currentTimeMillis());
-        this.lastUpdatedTimestamp = this.createdTimestamp;
-        this.status = Status.ACTIVE;
         this.imageIds = new ArrayList<>();
+        this.createdTimestamp = new Timestamp(System.currentTimeMillis());
+        this.lastUpdatedTimestamp = createdTimestamp;
+        this.status = Status.ACTIVE;
     }
 
     public String getId() {
@@ -103,8 +116,20 @@ public class Rental {
         return startDate;
     }
 
+    public String formatStartDate() {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.format(this.startDate);
+    }
+
     public Rental setStartDate(Date startDate) {
         this.startDate = startDate;
+        return this;
+    }
+
+    public Rental setStartDate(String startDate) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        this.startDate = format.parse(startDate);
         return this;
     }
 
@@ -112,8 +137,20 @@ public class Rental {
         return endDate;
     }
 
+    public String formatEndDate() {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.format(this.endDate);
+    }
+
     public Rental setEndDate(Date endDate) {
         this.endDate = endDate;
+        return this;
+    }
+
+    public Rental setEndDate(String endDate) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        this.endDate = format.parse(endDate);
         return this;
     }
 
@@ -130,18 +167,42 @@ public class Rental {
         return lastUpdatedTimestamp;
     }
 
+    public String formatLastUpdatedTimestamp() {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.format(this.lastUpdatedTimestamp);
+    }
+
     public Rental setLastUpdatedTimestamp(Date lastUpdatedTimestamp) {
         this.lastUpdatedTimestamp = lastUpdatedTimestamp;
         return this;
     }
 
+    public Rental setLastUpdatedTimestamp(String lastUpdatedTimestamp) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        this.lastUpdatedTimestamp = format.parse(lastUpdatedTimestamp);
+        return this;
+    }
+
     public Date getCreatedTimestamp() {
-        /*
+        return this.createdTimestamp;
+    }
+
+    public String formatCreatedTimestamp() {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         format.setTimeZone(TimeZone.getTimeZone("GMT"));
         return format.format(this.createdTimestamp);
-        */
-        return this.createdTimestamp;
+    }
+
+    public Rental setCreatedTimestamp(Date createdTimestamp) {
+        this.createdTimestamp = createdTimestamp;
+        return this;
+    }
+
+    public Rental setCreatedTimestamp(String createdTimestamp) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        this.createdTimestamp = format.parse(createdTimestamp);
+        return this;
     }
 
     public Rental setPosterId(String posterId) {
@@ -266,6 +327,123 @@ public class Rental {
         public int getVal() {
             return this.val;
         }
+    }
+
+    @Override
+    public void writeToBuffer(Buffer buff) {
+        buff.appendLong(this.createdTimestamp.getTime());
+        buff.appendLong(this.lastUpdatedTimestamp.getTime());
+        buff.appendLong(this.startDate.getTime());
+        buff.appendLong(this.endDate.getTime());
+        buff.appendDouble(this.latitude);
+        buff.appendDouble(this.longitude);
+        buff.appendDouble(this.price);
+        byte[] bytes;
+        bytes = this.id.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.posterId.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.rentalType.toString().getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.address.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.neighborhood.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.quantifier.toString().getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.bedroom.toString().getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.bathroom.toString().getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.description.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.status.toString().getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        buff.appendInt(this.imageIds.size());
+        for (String imageId : imageIds) {
+            bytes = imageId.getBytes(UTF8);
+            buff.appendInt(bytes.length).appendBytes(bytes);
+        }
+    }
+
+    @Override
+    public int readFromBuffer(int pos, Buffer buff) {
+        this.createdTimestamp = new Date(buff.getLong(pos));
+        pos += 8;
+        this.lastUpdatedTimestamp = new Date(buff.getLong(pos));
+        pos += 8;
+        this.startDate = new Date(buff.getLong(pos));
+        pos += 8;
+        this.endDate = new Date(buff.getLong(pos));
+        pos += 8;
+        this.latitude = buff.getDouble(pos);
+        pos += 8;
+        this.longitude = buff.getDouble(pos);
+        pos += 8;
+        this.price = buff.getDouble(pos);
+        pos += 8;
+        int len;
+        byte[] bytes;
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.id = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.posterId = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.rentalType = RentalType.valueOf(new String(bytes, UTF8));
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.address = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.neighborhood = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.quantifier = Quantifier.valueOf(new String(bytes, UTF8));
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.bedroom = Bedroom.valueOf(new String(bytes, UTF8));
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.bathroom = Bathroom.valueOf(new String(bytes, UTF8));
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.description = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.status = Status.valueOf(new String(bytes, UTF8));
+        int num = buff.getInt(pos);
+        pos += 4;
+        for (int i = 0; i < num; i++) {
+            len = buff.getInt(pos);
+            pos += 4;
+            bytes = buff.getBytes(pos, pos + len);
+            pos += len;
+            this.imageIds.add(new String(bytes, UTF8));
+        }
+        return pos;
     }
 
 }

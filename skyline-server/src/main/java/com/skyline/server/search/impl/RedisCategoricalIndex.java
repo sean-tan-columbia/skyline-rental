@@ -55,6 +55,17 @@ public class RedisCategoricalIndex implements RedisIndex {
         });
     }
 
+    @SuppressWarnings("unchecked")
+    public void query(String val, Handler<AsyncResult<List<String>>> resultHandler) {
+        redisClient.smembers(name + ":" + val, r -> {
+            if (r.succeeded()) {
+                resultHandler.handle(Future.succeededFuture(r.result().getList()));
+            } else {
+                resultHandler.handle(Future.failedFuture(r.cause()));
+            }
+        });
+    }
+
     public RedisClient getRedisClient() {
         return this.redisClient;
     }
