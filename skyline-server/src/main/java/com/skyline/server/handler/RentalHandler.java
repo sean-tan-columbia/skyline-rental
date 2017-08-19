@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class RentalHandler {
 
-    private final static Logger LOG = LoggerFactory.getLogger(RentalHandler2.class);
+    private final static Logger LOG = LoggerFactory.getLogger(RentalHandler.class);
     private final static String SESSION_USERNAME = "username";
     private final RentalRedisHandler redisHandler;
     private final RentalJdbcHandler jdbcHandler;
@@ -30,12 +30,8 @@ public class RentalHandler {
 
     public void put(RoutingContext context) {
         Session session = context.session();
-        if (session == null) {
-            context.response().setStatusCode(202).end("User Not Authorized to Create!");
-            return;
-        }
-        if (session.get(SESSION_USERNAME) == null) {
-            context.response().setStatusCode(202).end("User Not Authorized to Create!");
+        if (session == null || session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(401).end("User Not Authorized to Create!");
             return;
         }
         JsonObject rentalInfo = context.getBodyAsJson();
@@ -79,6 +75,7 @@ public class RentalHandler {
 
     public void get(RoutingContext context) {
         String rentalId = context.request().getParam("rentalId");
+        System.out.println(rentalId);
         if (rentalId == null) {
             context.response().setStatusCode(400).end("Invalid Rental ID!");
             return;
@@ -101,17 +98,17 @@ public class RentalHandler {
             context.response().setStatusCode(400).end("Invalid Rental ID!");
             return;
         }
+        Session session = context.session();
+        if (session == null || session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(401).end("User Not Authorized to Update!");
+            return;
+        }
+        String username = session.get(SESSION_USERNAME);
         jdbcHandler.select(rentalId, r1 -> {
             if (r1.failed()) {
                 context.response().setStatusCode(202).end(r1.cause().getMessage());
                 return;
             }
-            Session session = context.session();
-            if (session == null) {
-                context.response().setStatusCode(202).end("User Not Authorized to Update!");
-                return;
-            }
-            String username = session.get(SESSION_USERNAME);
             if (username == null || !username.equals(r1.result().getPosterId())) {
                 context.response().setStatusCode(202).end("User Not Authorized to Update!");
                 return;
@@ -162,17 +159,17 @@ public class RentalHandler {
             context.response().setStatusCode(400).end("Invalid Rental ID!");
             return;
         }
+        Session session = context.session();
+        if (session == null || session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(401).end("User Not Authorized to Delete!");
+            return;
+        }
+        String username = session.get(SESSION_USERNAME);
         jdbcHandler.select(rentalId, r1 -> {
             if (r1.failed()) {
                 context.response().setStatusCode(202).end(r1.cause().getMessage());
                 return;
             }
-            Session session = context.session();
-            if (session == null) {
-                context.response().setStatusCode(202).end("User Not Authorized to Delete!");
-                return;
-            }
-            String username = session.get(SESSION_USERNAME);
             if (username == null || !username.equals(r1.result().getPosterId())) {
                 context.response().setStatusCode(202).end("User Not Authorized to Delete!");
                 return;
