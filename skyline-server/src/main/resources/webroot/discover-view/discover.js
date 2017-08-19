@@ -13,7 +13,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.searchParams = {};
     $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
     $scope.isSingleLoc = false;
-    $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc").then(function(r1) {
+    $http.get(config.serverUrl + "/api/public/discover/lastUpdatedTimestamp/desc").then(function(r1) {
         rentalIds = r1.data;
         $scope.getRentalsWithIds(rentalIds);
     });
@@ -257,7 +257,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         mapSearchParams['lat_min'] = (parseFloat(rentalObj.latitude) - pos_delta).toString();
         mapSearchParams['lat_max'] = (parseFloat(rentalObj.latitude) + pos_delta).toString();
         $http({ method: 'POST',
-                url: config.serverUrl + '/api/public/mapsearch',
+                url: config.serverUrl + '/api/public/location',
                 data: mapSearchParams
         }).then(function(r) {
             console.log(r.data);

@@ -246,4 +246,16 @@ public class RentalHandler {
         });
     }
 
+    public void sort(RoutingContext context) {
+        String sorter = context.request().getParam("sorter");
+        Boolean order = context.request().getParam("order").equals("asc");
+        redisHandler.sort(sorter, order, r -> {
+            if (r.succeeded()) {
+                context.response().setStatusCode(200).end(Json.encodePrettily(r.result()));
+            } else {
+                context.response().setStatusCode(500).end(r.cause().getMessage());
+            }
+        });
+    }
+
 }
