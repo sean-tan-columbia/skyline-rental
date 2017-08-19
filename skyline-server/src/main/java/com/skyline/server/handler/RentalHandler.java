@@ -75,7 +75,6 @@ public class RentalHandler {
 
     public void get(RoutingContext context) {
         String rentalId = context.request().getParam("rentalId");
-        System.out.println(rentalId);
         if (rentalId == null) {
             context.response().setStatusCode(400).end("Invalid Rental ID!");
             return;

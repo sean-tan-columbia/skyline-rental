@@ -24,12 +24,8 @@ public class UserHandler {
 
     public void get(RoutingContext context) {
         Session session = context.session();
-        if (session == null) {
-            context.response().setStatusCode(202).end("Unauthorized!");
-            return;
-        }
-        if (session.get(SESSION_USERNAME) == null) {
-            context.response().setStatusCode(202).end("Unauthorized!");
+        if (session == null || session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(401).end();
             return;
         }
         String posterId = session.get(SESSION_USERNAME);
