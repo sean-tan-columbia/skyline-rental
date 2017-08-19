@@ -6,7 +6,7 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         console.log($routeParams.rentalId)
         rentalObj = response.data
         rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
+        // rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
         $scope.rental = rentalObj
         $scope.slides = rentalObj.imageIds
         $scope.rentalAge = getRentalAge(parseInt(rentalObj.lastUpdatedTimestamp));

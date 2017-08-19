@@ -32,12 +32,12 @@
                     <img src="../asset/image/user-icon-128.png">
                 </div>
                 <p class="dashboard-me-nickname" style="font-size:22px;text-align:center;">
-                    jtan
+                    {{id}}
                 </p>
             </div>
             <div class="dashboard-me-contact" style="padding-top:10px;padding-left:10px;">
-                <p>Email:</p>
-                <p>WeChat:</p>
+                <p>Email:{{email}}</p>
+                <p>WeChat:{{wechat}}</p>
             </div>
         </div>
         <div style="margin-left:38%;width:100%;height:20px;text-align:center;">
@@ -65,9 +65,6 @@
                             </td>
                             <td width="20px;"><a href ng-click="deleteRental($index)"><img
                                     src="../asset/image/delete-16.png"></a></td>
-                            <!--<td width="20px;">-->
-                            <!--<button ng-click="" style="background:url('../asset/image/delete-16.png') no-repeat;cursor:pointer;border:none;width:16px;height:16px;margin:0px;"></button>-->
-                            <!--</td>-->
                         </tr>
                     </table>
                 </div>

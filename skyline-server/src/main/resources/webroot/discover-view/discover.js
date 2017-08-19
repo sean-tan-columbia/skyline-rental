@@ -76,10 +76,11 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
+                console.log(rentalObj);
                 if (rentalObj.id == undefined) {
                     return;
                 }
-                rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
+                // rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
                 rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
                 rentalObj.isLiked = likedRentalSet.has(rentalObj.id);

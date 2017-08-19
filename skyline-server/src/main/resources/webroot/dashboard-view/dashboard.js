@@ -2,21 +2,17 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 
 .controller('userDashboardController', function ($scope, $route, $http, config, $q, $window) {
     $scope.rentals = [];
-    $http.get(config.serverUrl + "/api/public/discover/last_updated_timestamp/desc")
+    $http.get(config.serverUrl + "/api/private/user")
     .then(function(r1) {
-        rentalIds = r1.data;
-        for (i = 0; i < rentalIds.length; i++) {
-            $http.get(config.serverUrl + "/api/public/rental/" + rentalIds[i])
-            .then(function(r2) {
-                rentalObj = r2.data;
-                if (rentalObj.id == undefined) {
-                    return;
-                }
-                address_parts = rentalObj.address.split(",")
-                rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
-                rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
-                $scope.rentals.push(rentalObj);
-            })
+        var userInfo = r1.data;
+        $scope.id = userInfo.id;
+        $scope.email = userInfo.email;
+        for (i = 0; i < userInfo.rentals.length; i++) {
+            rentalObj = userInfo.rentals[i];
+            address_parts = rentalObj.address.split(",")
+            rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
+            rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
+            $scope.rentals.push(rentalObj);
         }
     });
     $scope.deleteRental = function(rentalIndex) {
@@ -24,15 +20,16 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
         $http.delete(config.serverUrl + "/api/private/rental/" + rentalId)
         .then(function(r) {
             if (r.status == 200) {
-                gcstoken = r.data;
-                imageIds = $scope.rentals[rentalIndex].imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
-                $scope.deleteImages(gcstoken, imageIds, function() {
+                // gcstoken = r.data;
+                // // imageIds = $scope.rentals[rentalIndex].imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
+                // imageIds = $scope.rentals[rentalIndex].imageIds
+                // $scope.deleteImages(gcstoken, imageIds, function() {
                     if ($scope.rentals.length > 1) {
                         $route.reload();
                     } else {
                         $window.location.href = '/';
                     }
-                });
+                // });
             } else if (r.status == 202) {
                 console.log('Rental stays unchanged');
             }
@@ -53,13 +50,6 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
         $q.all(promises).then(function(results){
             callback();
         })
-    };
-    $scope.getAccessToken = function(callback) {
-        $http({ method: 'GET',
-                url: config.serverUrl + '/api/private/gcstoken',
-        }).then(function(response) {
-            callback(response.data);
-        });
     };
 })
 
@@ -152,7 +142,8 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                             scope.selectedQuantifier = "1";
                             break;
                     }
-                    scope.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(",")
+                    // scope.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(",")
+                    scope.imageIds = rentalObj.imageIds;
                     scope.images = [];
                     for (i = 0; i < scope.imageIds.length; i++) {
                         scope.images.push({});
@@ -180,7 +171,6 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 $http.get("https://ipinfo.io")
                 .then(function(response) {
                     ipinfo = response.data;
-                    console.log(ipinfo);
                     scope.rentalId = posterHashids.encode(ip2int(ipinfo.ip), Date.now());
                     console.log(scope.rentalId);
                 });
@@ -190,13 +180,6 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     scope.deletedImages.push(scope.images[index].id);
                 }
                 scope.images.splice(index, 1);
-            };
-            scope.getAccessToken = function(callback) {
-                $http({ method: 'GET',
-                        url: config.serverUrl + '/api/private/gcstoken',
-                }).then(function(response) {
-                    callback(response.data);
-                });
             };
             scope.deleteImages = function(gcstoken, imageIds, callback) {
                 var promises = [];
@@ -280,7 +263,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                         url: config.serverUrl + '/api/private/rental/' + data.id,
                         data: data
                     }).then(function(response) {
-                        if (response.status == 201) {
+                        if (response.status == 200) {
                             gcstoken = response.data;
                             scope.uploadImages(gcstoken, scope.images, function() {
                                 scope.deleteImages(gcstoken, scope.deletedImages, function() { $route.reload(); });
