@@ -20,9 +20,35 @@ angular.module("skyline-rental", ['ngRoute',
         })
         .when('/post', {
             templateUrl: 'dashboard-view/dashboard.html',
+            controller: 'userDashboardController',
+            resolve: {
+                "userInfo": function($http, $location){
+                    return $http({ method: 'GET', url: 'http://localhost:8080/api/private/user'})
+                    .then(
+                    function successCallback(response) {
+                        return response;
+                    },
+                    function errorCallback(response) {
+                        $location.path('/login');
+                    });
+                }
+            }
         })
         .when('/edit/:rentalId', {
             templateUrl: 'dashboard-view/dashboard.html',
+            controller: 'userDashboardController',
+            resolve: {
+                "userInfo": function($http, $location){
+                    return $http({ method: 'GET', url: 'http://localhost:8080/api/private/user'})
+                    .then(
+                    function successCallback(response) {
+                        return response;
+                    },
+                    function errorCallback(response) {
+                        $location.path('/login');
+                    });
+                }
+            }
         })
         .when('/delete/:rentalId', {
             templateUrl: 'dashboard-view/dashboard.html',

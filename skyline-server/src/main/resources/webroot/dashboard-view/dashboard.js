@@ -1,20 +1,17 @@
 angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 
-.controller('userDashboardController', function ($scope, $route, $http, config, $q, $window) {
+.controller('userDashboardController', function ($scope, $route, $http, config, $q, $window, userInfo) {
     $scope.rentals = [];
-    $http.get(config.serverUrl + "/api/private/user")
-    .then(function(r1) {
-        var userInfo = r1.data;
-        $scope.id = userInfo.id;
-        $scope.email = userInfo.email;
-        for (i = 0; i < userInfo.rentals.length; i++) {
-            rentalObj = userInfo.rentals[i];
-            address_parts = rentalObj.address.split(",")
-            rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
-            rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
-            $scope.rentals.push(rentalObj);
-        }
-    });
+    var user = userInfo.data;
+    $scope.id = user.id;
+    $scope.email = user.email;
+    for (i = 0; i < user.rentals.length; i++) {
+        rentalObj = user.rentals[i];
+        address_parts = rentalObj.address.split(",")
+        rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
+        rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
+        $scope.rentals.push(rentalObj);
+    }
     $scope.deleteRental = function(rentalIndex) {
         rentalId = $scope.rentals[rentalIndex].id;
         $http.delete(config.serverUrl + "/api/private/rental/" + rentalId)

@@ -105,7 +105,7 @@ public class ServerVerticle extends AbstractVerticle {
 
         router.route("/api/private/*").handler(sessionHandler);
         router.route("/api/private/*").handler(userSessionHandler);
-        router.route("/api/private/*").handler(redirectAuthHandler);
+        // router.route("/api/private/*").handler(redirectAuthHandler);
 
         // Main logic
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
@@ -113,13 +113,12 @@ public class ServerVerticle extends AbstractVerticle {
         router.post("/api/private/rental").handler(rentalHandler::put);
         router.put("/api/private/rental/:rentalId").handler(rentalHandler::update);
         router.delete("/api/private/rental/:rentalId").handler(rentalHandler::delete);
-
         router.get("/api/private/user").handler(userHandler::get);
 
         // Order is important, don't move the positions
-        router.route("/dashboard-view/dashboard.html").handler(sessionHandler);
-        router.route("/dashboard-view/dashboard.html").handler(userSessionHandler);
-        router.route("/dashboard-view/dashboard.html").handler(redirectAuthHandler);
+        // router.route("/dashboard-view/dashboard.html").handler(sessionHandler);
+        // router.route("/dashboard-view/dashboard.html").handler(userSessionHandler);
+        // router.route("/dashboard-view/dashboard.html").handler(redirectAuthHandler);
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 
         return router;
