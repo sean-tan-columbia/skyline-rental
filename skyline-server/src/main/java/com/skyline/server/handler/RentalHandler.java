@@ -21,11 +21,13 @@ public class RentalHandler {
     private final RentalRedisHandler redisHandler;
     private final RentalJdbcHandler jdbcHandler;
     private final GCSAuthHandler gcsAuthHandler;
+    private final UserHandler userHandler;
 
-    public RentalHandler(RentalRedisHandler redisHandler, RentalJdbcHandler jdbcHandler, GCSAuthHandler gcsAuthHandler) {
+    public RentalHandler(RentalRedisHandler redisHandler, RentalJdbcHandler jdbcHandler, GCSAuthHandler gcsAuthHandler, UserHandler userHandler) {
         this.redisHandler = redisHandler;
         this.jdbcHandler = jdbcHandler;
         this.gcsAuthHandler = gcsAuthHandler;
+        this.userHandler = userHandler;
     }
 
     public void put(RoutingContext context) {
@@ -42,17 +44,24 @@ public class RentalHandler {
             context.response().setStatusCode(202).end(e.getCause().getMessage());
             return;
         }
+        String username = session.get(SESSION_USERNAME);
         this.put(rental, r1 -> {
             if (r1.failed()) {
                 context.response().setStatusCode(500).end(r1.cause().getMessage());
                 return;
             }
-            gcsAuthHandler.getAccessToken(r2 -> {
-                if (r2.succeeded()) {
-                    context.response().setStatusCode(201).end(Json.encodePrettily(r2.result()));
-                } else {
+            userHandler.deleteUserCache(username, r2 -> {
+                if (r2.failed()) {
                     context.response().setStatusCode(500).end(r2.cause().getMessage());
+                    return;
                 }
+                gcsAuthHandler.getAccessToken(r3 -> {
+                    if (r3.succeeded()) {
+                        context.response().setStatusCode(201).end(Json.encodePrettily(r3.result()));
+                    } else {
+                        context.response().setStatusCode(500).end(r3.cause().getMessage());
+                    }
+                });
             });
         });
     }
@@ -79,14 +88,23 @@ public class RentalHandler {
             context.response().setStatusCode(400).end("Invalid Rental ID!");
             return;
         }
-        redisHandler.get(rentalId, r -> {
-            if (r.succeeded()) {
+        redisHandler.get(rentalId, r1 -> {
+            if (r1.succeeded()) {
                 context.response()
                         .putHeader("content-type", "application/json")
                         .putHeader("Access-Control-Allow-Origin", "*")
-                        .end(Json.encodePrettily(r.result()));
+                        .end(Json.encodePrettily(r1.result()));
             } else {
-                context.response().setStatusCode(500).end(r.cause().getMessage());
+                jdbcHandler.select(rentalId, r2 -> {
+                    if (r2.succeeded()) {
+                        context.response()
+                                .putHeader("content-type", "application/json")
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(Json.encodePrettily(r2.result()));
+                    } else {
+                        context.response().setStatusCode(500).end(r2.cause().getMessage());
+                    }
+                });
             }
         });
     }
@@ -125,12 +143,18 @@ public class RentalHandler {
                     context.response().setStatusCode(500).end(r2.cause().getMessage());
                     return;
                 }
-                gcsAuthHandler.getAccessToken(r3 -> {
-                    if (r3.succeeded()) {
-                        context.response().setStatusCode(200).end(Json.encodePrettily(r3.result()));
-                    } else {
+                userHandler.deleteUserCache(username, r3 -> {
+                    if (r3.failed()) {
                         context.response().setStatusCode(500).end(r3.cause().getMessage());
+                        return;
                     }
+                    gcsAuthHandler.getAccessToken(r4 -> {
+                        if (r4.succeeded()) {
+                            context.response().setStatusCode(200).end(Json.encodePrettily(r4.result()));
+                        } else {
+                            context.response().setStatusCode(500).end(r4.cause().getMessage());
+                        }
+                    });
                 });
             });
         });
@@ -177,12 +201,18 @@ public class RentalHandler {
                 if (r2.failed()) {
                     context.response().setStatusCode(500).end(r2.cause().getMessage());
                 }
-                gcsAuthHandler.getAccessToken(r3 -> {
-                    if (r3.succeeded()) {
-                        context.response().setStatusCode(200).end(Json.encodePrettily(r3.result()));
-                    } else {
+                userHandler.deleteUserCache(username, r3 -> {
+                    if (r3.failed()) {
                         context.response().setStatusCode(500).end(r3.cause().getMessage());
+                        return;
                     }
+                    gcsAuthHandler.getAccessToken(r4 -> {
+                        if (r4.succeeded()) {
+                            context.response().setStatusCode(200).end(Json.encodePrettily(r4.result()));
+                        } else {
+                            context.response().setStatusCode(500).end(r4.cause().getMessage());
+                        }
+                    });
                 });
             });
         });

@@ -70,4 +70,18 @@ public class UserHandler {
         });
     }
 
+    public void deleteUserCache(String posterId, Handler<AsyncResult<Long>> resultHandler) {
+        redisHandler.del(posterId, r -> {
+            if (r.succeeded()) {
+                resultHandler.handle(Future.succeededFuture());
+            } else {
+                resultHandler.handle(Future.failedFuture(r.cause()));
+            }
+        });
+    }
+
+    public void updateUserCache(String posterId, String rentalId, Handler<AsyncResult<Long>> resultHandler) {
+
+    }
+
 }

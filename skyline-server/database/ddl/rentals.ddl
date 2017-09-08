@@ -19,3 +19,5 @@ CREATE TABLE eventbus.RENTALS (
     last_updated_timestamp TIMESTAMP NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE INDEX idx_rentals_posterId ON eventbus.RENTALS (poster_id);

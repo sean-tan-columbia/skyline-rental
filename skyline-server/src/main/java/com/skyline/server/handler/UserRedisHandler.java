@@ -61,4 +61,18 @@ public class UserRedisHandler {
         });
     }
 
+    void del(String posterId, Handler<AsyncResult<Long>> resultHandler) {
+        if (posterId == null) {
+            resultHandler.handle(Future.failedFuture("Invalid User ID!"));
+            return;
+        }
+        client.del(USER_KEY_BASE + posterId, r -> {
+            if (r.succeeded()) {
+                resultHandler.handle(Future.succeededFuture());
+            } else {
+                resultHandler.handle(Future.failedFuture(r.cause()));
+            }
+        });
+    }
+
 }
