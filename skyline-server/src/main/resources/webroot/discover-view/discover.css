@@ -9,6 +9,7 @@
 #header-icon {
     margin-left: 0px;
     margin-top: 10px;
+    width: 100px;
 }
 #header-icon label {
     margin-left: 0px;
@@ -19,17 +20,30 @@
 #header-search {
     display:inline;
     margin-top:7px;
-    margin-left:0px;
-    height:30px;
-    width:500px;
+    margin-left:-150px;
+    height:32px;
+    width:680px;
+    float: left;
 }
 #header-search input {
+    background: url(../asset/image/search_glass_20.png) no-repeat scroll 7px 7px;
     height:100%;
     width:100%;
-    border-radius:2px;
-    border-width:1px;
+    border-radius:1px;
+    border-width:0px;
     padding:2px;
-    padding-left:10px;
+    padding-left:30px;
+    background-color: #6495ED;
+    transition: background-color 0.5s ease;
+}
+#header-search input:focus {
+    background-color: white;
+    outline: none;
+    transition: background-color 0.5s ease;
+}
+#header-down {
+    float: left;
+    height: 50px;
 }
 #header-down .md-datepicker-input-container {
     width: 120px;
@@ -40,29 +54,26 @@
     font-size: 16px;
     width: 100px;
 }
-/*
-.md-datepicker-input[placeholder] {
-    color:red;
-}*/
 #header-menu ul {
-    margin-top: 10px;
-    float: left;
+    margin-left: 30px;
 }
 #header-down {
     width: 100%;
     border-style: solid;
     border-color: #D3D3D3;
     border-width: 2px;
+    border-top-width: 0px;
 }
 #submit-search {
-    width: 100px;
-    height: 30px;
+    width: 120px;
+    height: 35px;
     background-color: white;
     border: 1px solid #4169E1;
     border-radius: 2px;
     font-size: 15px;
     color: #4169E1;
     margin-left: 0px;
+    transition: all 0.3s ease 0s;
 }
 #submit-search:hover {
     background-color: #4169E1;
@@ -70,13 +81,14 @@
 }
 #submit-clear {
     margin-left: 8px;
-    width: 100px;
-    height: 30px;
+    width: 120px;
+    height: 35px;
     background-color: white;
     border: 1px solid #4169E1;
     border-radius: 2px;
     font-size: 15px;
     color: #4169E1;
+    transition: all 0.3s ease 0s;
 }
 #submit-clear:hover {
     background-color: #4169E1;
@@ -113,10 +125,10 @@
     height: calc(100vh - 215px);
     overflow-y: scroll;
     overflow-x:hidden;
-    /* padding-right: 0px; */
+    padding-top: 2px;
 }
 #item-scroll div.item-container {
-    width: auto;
+    width: 535px;
     height: 160px;
     margin-left: 10px;
     margin-bottom: 5px;
@@ -125,7 +137,7 @@
     border-width: 1px;
 }
 #item-scroll div.item-container:hover {
-    border-color: #4169E1;
+    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.6);
 }
 #item-scroll div.item-container div.img-container {
     width: 240px;
@@ -145,15 +157,15 @@
     z-index: 1;
     left: 0;
     bottom: 90px;
-    opacity: 0.8;
+    opacity: 1.0;
 }
 #item-scroll div.item-container div.img-container input.arrow-next {
     overflow:hidden;
     position:relative;
     z-index: 1;
-    left: 185px;
+    left: 200px;
     bottom: 90px;
-    opacity: 0.8;
+    opacity: 1.0;
 }
 #item-scroll div.item-container div.content-container {
     float: left;
@@ -187,7 +199,7 @@
     text-align: right;
 }
 #item-scroll div.item-container div.content-container div.upper-container div.button-selections a.button-like {
-    margin-left: 50px;
+    margin-left: 35px;
     cursor: pointer;
 }
 
@@ -221,55 +233,43 @@
 }
 #navi {
     width: 100%;
-    padding-top: 0px;
+    margin-top: -5px;
 }
 #navi ul {
     width: 500px;
     list-style-type: none;
-    padding: 0;
-    padding-left: 20px;
+    padding-left: 30px;
     overflow: hidden;
     background-color: transparent;
 }
 #navi ul li {
     float: left;
-    width: 35px;
-    border-color: #D3D3D3;
-    border-width: 1px;
-    border-style: solid;
-    border-right-width: 0px;
+    width: 20px;
+    margin-right: 15px;
 }
 #navi ul li.prev {
-    width: 60px;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
+    width: auto;
+    margin-right: 20px;
 }
 #navi ul li.next {
-    width: 60px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-right-color: #D3D3D3;
-    border-right-style: solid;
-    border-right-width: 1px;
+    width: auto;
 }
-#navi ul li a {
+#navi ul li a.page {
     display: block;
     color: #4169E1;
     text-align: center;
     text-decoration: none;
-    font-size: 15px;
+    font-size: 17px;
     font-family:Arial;
     cursor: pointer;
-    padding: 7px;
+    padding: 0px;
+    margin-top:5px;
 }
 #navi .active {
-    background-color: #4169E1;
     color: white;
-    border-color: #D3D3D3;
-    border-width: 1px;
-    border-style: solid;
-    border-left-width: 0px;
-    border-right-width: 0px;
+    border-bottom-color: #4169E1;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
 }
 #ng-map div.custom-marker-container {
     width: 250px;
@@ -290,4 +290,10 @@
     border: 1px solid #ccc;
     border-radius:2px;
     padding-top:2px;
+}
+#favorite-on-off {
+    background:blue;
+}
+#favorite-on-off::active {
+
 }

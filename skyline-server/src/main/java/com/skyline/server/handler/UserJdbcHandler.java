@@ -88,6 +88,7 @@ public class UserJdbcHandler {
     public void getUser(String posterId, Handler<AsyncResult<User>> resultHandler) {
         connection.queryWithParams(
                 "SELECT ID," +
+                        "NAME," +
                         "EMAIL " +
                         "FROM eventbus.USERS " +
                         "WHERE ID=?",
@@ -101,7 +102,8 @@ public class UserJdbcHandler {
                         }
                         JsonArray row = rows.get(0);
                         User user = new User(posterId)
-                                .setEmail(row.getString(1))
+                                .setName(row.getString(1))
+                                .setEmail(row.getString(2))
                                 .setWechatId("");
                         resultHandler.handle(Future.succeededFuture(user));
                     } else {

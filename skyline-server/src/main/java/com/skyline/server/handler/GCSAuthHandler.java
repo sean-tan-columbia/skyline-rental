@@ -58,58 +58,6 @@ public class GCSAuthHandler {
         }
     }
 
-    private void refreshAccessToken(RoutingContext context) {
-        vertx.<Boolean>executeBlocking(future -> {
-            Boolean isRefresh = false;
-            try {
-                isRefresh = credential.refreshToken();
-            } catch (IOException e) {
-                e.getCause();
-            }
-            future.complete(isRefresh);
-        }, res -> {
-            if (res.result()) {
-                putAccessToken(context);
-            } else {
-                LOG.error("Failed to refresh GCS Access Token!");
-            }
-        });
-    }
-
-    private void putAccessToken(RoutingContext context) {
-        GCSAuth gcsAuth = new GCSAuth(credential.getAccessToken());
-        JsonObject gcsAuthJson = new JsonObject(Json.encode(gcsAuth));
-        redisClient.hmset(GCS_TOKEN_KEY, gcsAuthJson, r -> {
-            if (r.succeeded()) {
-                LOG.info("New GCS Access Token: " + credential.getAccessToken());
-                context.response()
-                        .putHeader("content-type", "application/json")
-                        .putHeader("Access-Control-Allow-Origin", "*")
-                        .end(Json.encodePrettily(credential.getAccessToken()));
-                setAccessTokenTTL();
-            } else {
-                LOG.error("Failed to insert new token!");
-            }
-        });
-    }
-
-    public void getAccessToken(RoutingContext context) {
-        redisClient.exists(GCS_TOKEN_KEY, e -> {
-            if (e.succeeded() && e.result() > 0) {
-                redisClient.hmget(GCS_TOKEN_KEY, Arrays.asList("accessToken"), r -> {
-                    context.response()
-                            .putHeader("content-type", "application/json")
-                            .putHeader("Access-Control-Allow-Origin", "*")
-                            .setStatusCode(200)
-                            .end(Json.encodePrettily(r.result().getString(0)));
-                });
-            } else {
-                LOG.info("Access token not exist, refresh it");
-                refreshAccessToken(context);
-            }
-        });
-    }
-
     private void setAccessTokenTTL() {
         redisClient.expire(GCS_TOKEN_KEY, accessTokenTTL, r -> {
             if (r.succeeded() && r.result() > 0) {

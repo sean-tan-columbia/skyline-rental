@@ -76,7 +76,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
             .then(function(r2) {
                 rentalObj = r2.data;
-                console.log(rentalObj);
+                // console.log(rentalObj);
                 if (rentalObj.id == undefined) {
                     return;
                 }
@@ -86,9 +86,9 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 rentalObj.isLiked = likedRentalSet.has(rentalObj.id);
                 rentalObj.age = getRentalAge(rentalObj.lastUpdatedTimestamp);
                 if (rentalObj.isLiked) {
-                    rentalObj.likedImg = "../asset/image/filled_heart_32.png";
+                    rentalObj.likedImg = "../asset/image/red_heart_32.png";
                 } else {
-                    rentalObj.likedImg = "../asset/image/empty_heart_32.png";
+                    rentalObj.likedImg = "../asset/image/white_heart_32.png";
                 }
                 switch (rentalObj.bedroom) {
                     case "STUDIO":
@@ -144,7 +144,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     };
     $scope.likeRental = function (rental_index) {
         $scope.rentals[rental_index].isLiked = true;
-        $scope.rentals[rental_index].likedImg = "../asset/image/filled_heart_32.png";
+        $scope.rentals[rental_index].likedImg = "../asset/image/red_heart_32.png";
         var likedRentalSet = $scope.getLikedRentalSet();
         if (rental_index < $scope.rentals.length && $scope.rentals[rental_index] != null) {
             rental_id = $scope.rentals[rental_index].id;
@@ -158,7 +158,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     };
     $scope.unlikeRental = function(rental_index) {
         $scope.rentals[rental_index].isLiked = false;
-        $scope.rentals[rental_index].likedImg = "../asset/image/empty_heart_32.png";
+        $scope.rentals[rental_index].likedImg = "../asset/image/white_heart_32.png";
         var likedRentalSet = $scope.getLikedRentalSet();
         if (rental_index < $scope.rentals.length && $scope.rentals[rental_index] != null) {
             rental_id = $scope.rentals[rental_index].id;
@@ -260,7 +260,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 url: config.serverUrl + '/api/public/location',
                 data: mapSearchParams
         }).then(function(r) {
-            console.log(r.data);
+            // console.log(r.data);
             rentalIds = r.data;
             $scope.getRentalsWithIds(rentalIds);
         });
@@ -270,7 +270,15 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             return;
         }
         $scope.isSingleLoc = false;
-        $scope.saveSearchParams();
+//        clearTimeout($scope.mapTimeout);
+//        $scope.mapTimeout = setTimeout(
+//            function() {
+//                $scope.saveSearchParams();
+//                console.log("save")
+//                console.log($scope.mapParamStack);
+//            },
+//        3000);
+
         $scope.search.showLiked = false;
         var center = $scope.map.getCenter();
         var bounds = $scope.map.getBounds();
@@ -278,7 +286,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.searchParams['lng_max'] = bounds.getNorthEast().lng().toString();
         $scope.searchParams['lat_min'] = bounds.getSouthWest().lat().toString();
         $scope.searchParams['lat_max'] = bounds.getNorthEast().lat().toString();
-        console.log($scope.searchParams);
+        // console.log($scope.searchParams);
         $scope.search();
     };
     $scope.resetSearchParams = function() {

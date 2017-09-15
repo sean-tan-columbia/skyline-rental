@@ -80,8 +80,4 @@ public class UserHandler {
         });
     }
 
-    public void updateUserCache(String posterId, String rentalId, Handler<AsyncResult<Long>> resultHandler) {
-
-    }
-
 }

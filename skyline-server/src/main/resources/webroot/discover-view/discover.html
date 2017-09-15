@@ -29,14 +29,14 @@
                 <ul>
                     <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
                     <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
-                    <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
-                    <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
-                    <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+                    <li><a href="#/post" style="color:white;opacity:0.9;">Post rental</a></li>
+                    <li><a href="#/post" style="color:white;opacity:0.9">Sign in</a></li>
+                    <li><a href="#/register" style="color:white;opacity:0.9">Sign up</a></li>
                 </ul>
             </div>
         </div>
         <div id="header-down">
-            <div class="layout layout-row layout-margin">
+            <div class="layout layout-row layout-margin" style="margin-top:0px;">
                 <md-input-container md-no-float>
                     <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-in"></md-datepicker>
                 </md-input-container>
@@ -111,24 +111,25 @@
         </div>
         <div id="main-right" class="floating">
             <div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">
-                <input type="submit"
-                       id="map-back-button"
-                       ng-click="returnToPrevMap()"
-                       ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"
-                       value="Back to Prev Map View">
+                <div style="display:inline;float:left;">
+                    <input type="submit"
+                           id="map-back-button"
+                           ng-click="returnToPrevMap()"
+                           ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"
+                           value="Back to Prev Map View" style="width:auto">
+                </div>
                 <select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"
                         ng-init="search.selectedSorter='latest'"
-                        style="border:1px solid #ccc;font-size: 15px; height:30px; width:160px;margin-left:30px;">
+                        style="border:1px solid #ccc;font-size:15px;height:30px;width:180px;margin-left:10px;outline:None;background-color:white">
                     <option value="latest" ng-selected="true">Latest</option>
                     <option value="expensive">Expensive</option>
                     <option value="cheap">Cheap</option>
                 </select>
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
                              class="md-primary"
-                             style="margin-top:0px;margin-bottom:0px;margin-left:30px;"
+                             style="margin-top:0px;margin-bottom:0px;margin-left:10px;"
                              ng-change="search()">
-                    Saved
-                    <!--<p style="display:inline;margin-left:30px;font-size:16px;">{{totalIds}} results</p>-->
+                    Favorites
                 </md-checkbox>
             </div>
             <div id="item-scroll">
@@ -145,9 +146,9 @@
                                  ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}"
                                  style="width:240px;">
                         </a>
-                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_white_24.png"
+                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_white-16.png"
                                ng-click="prevSlide(rental_index)">
-                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_white_24.png"
+                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_white-16.png"
                                ng-click="nextSlide(rental_index)">
                     </div>
                     <div class="content-container">
@@ -178,16 +179,18 @@
             </div>
             <div id="navi">
                 <ul style="float:left">
-                    <li class="prev"><a ng-click="prevPages()"><span>Prev</span></a></li>
+                    <li class="prev"><a style="cursor:pointer" ng-click="prevPages()"><img
+                            src="../asset/image/back-arrow-circular-32.png"></a></li>
                     <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}" >
-                        <a ng-click="selectPage(page)" >{{page}}</a>
+                        <a class="page" ng-click="selectPage(page)">{{page}}</a>
                     </li>
-                    <li class="next"><a ng-click="nextPages()"><span>Next</span></a></li>
+                    <li class="next"><a style="cursor:pointer" ng-click="nextPages()"><img
+                            src="../asset/image/forward-arrow-circular-32.png"></a></li>
                     <div style="margin-top:6px;">
-                        <p style="display:inline;margin-left:50px;font-size:18px;">{{totalIds}} results</p>
+                        <p style="display:inline;margin-left:50px;font-size:17px;color:#A9A9A9;">{{totalIds}}
+                            results</p>
                     </div>
                 </ul>
-
             </div>
         </div>
     </div>

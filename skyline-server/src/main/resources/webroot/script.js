@@ -2,12 +2,17 @@ angular.module("skyline-rental", ['ngRoute',
                                   'skyline-discover',
                                   'skyline-detail',
                                   'skyline-post',
-                                  'skyline-login',
-                                  'skyline-register',
-                                  'skyline-dashboard'])
+                                  'skyline-dashboard',
+                                  'skyline-auth'])
 
-.config(['$locationProvider', '$routeProvider',
-    function($location, $routeProvider) {
+.constant('config', {
+    serverUrl: 'http://localhost:8080',
+    googleCloudStorageBaseUrl: 'https://storage.googleapis.com',
+    googleCloudStorageBucket: 'skylinerental-static-dev'
+})
+
+.config(['$locationProvider', '$routeProvider', 'config',
+    function($location, $routeProvider, config) {
         $routeProvider
         .when('/', {
             templateUrl: 'discover-view/discover.html',
@@ -22,30 +27,15 @@ angular.module("skyline-rental", ['ngRoute',
             templateUrl: 'dashboard-view/dashboard.html',
             controller: 'userDashboardController',
             resolve: {
-                "userInfo": function($http, $location){
-                    return $http({ method: 'GET', url: 'http://localhost:8080/api/private/user'})
+                "userInfo": function($http, $location, $window){
+                    return $http({ method: 'GET', url: config.serverUrl + '/api/private/user'})
                     .then(
                     function successCallback(response) {
                         return response;
                     },
                     function errorCallback(response) {
-                        $location.path('/login');
-                    });
-                }
-            }
-        })
-        .when('/edit/:rentalId', {
-            templateUrl: 'dashboard-view/dashboard.html',
-            controller: 'userDashboardController',
-            resolve: {
-                "userInfo": function($http, $location){
-                    return $http({ method: 'GET', url: 'http://localhost:8080/api/private/user'})
-                    .then(
-                    function successCallback(response) {
-                        return response;
-                    },
-                    function errorCallback(response) {
-                        $location.path('/login');
+                        // $location.path('/login');
+                        $window.location.href = '#/login';
                     });
                 }
             }
@@ -54,14 +44,15 @@ angular.module("skyline-rental", ['ngRoute',
             templateUrl: 'dashboard-view/dashboard.html',
         })
         .when('/login', {
-            templateUrl: 'login-view/login.html',
+            templateUrl: 'auth-view/login.html',
         })
         .when('/register', {
-            templateUrl: 'register-view/register.html',
+            templateUrl: 'auth-view/register.html',
+        })
+        .when('/reset', {
+            templateUrl: 'auth-view/reset.html',
+        })
+        .when('/set_password', {
+            templateUrl: 'auth-view/set_password.html',
         })
 }])
-.constant('config', {
-    serverUrl: 'http://localhost:8080',
-    googleCloudStorageBaseUrl: 'https://storage.googleapis.com',
-    googleCloudStorageBucket: 'skylinerental-static-dev'
-})

@@ -17,6 +17,7 @@ public class User implements ClusterSerializable {
 
     private static final Charset UTF8 = Charset.forName("UTF-8");
     private String id;
+    private String name;
     private String email;
     private String wechatId;
     private Status status;
@@ -38,6 +39,15 @@ public class User implements ClusterSerializable {
 
     public String getId() {
         return this.id;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public User setName(String name) {
+        this.name = name;
+        return this;
     }
 
     public String getEmail() {
@@ -139,6 +149,8 @@ public class User implements ClusterSerializable {
         byte[] bytes;
         bytes = this.id.getBytes(UTF8);
         buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.name.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
         bytes = this.email.getBytes(UTF8);
         buff.appendInt(bytes.length).appendBytes(bytes);
         bytes = this.wechatId.getBytes(UTF8);
@@ -164,6 +176,11 @@ public class User implements ClusterSerializable {
         bytes = buff.getBytes(pos, pos + len);
         pos += len;
         this.id = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.name = new String(bytes, UTF8);
         len = buff.getInt(pos);
         pos += 4;
         bytes = buff.getBytes(pos, pos + len);

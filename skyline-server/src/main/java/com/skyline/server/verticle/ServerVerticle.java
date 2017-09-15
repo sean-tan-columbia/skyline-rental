@@ -41,7 +41,7 @@ public class ServerVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> future) throws Exception {
 
-        Config config = Config.getInstance();
+        Config config = Config.getInstance("dev");
         this.redisClient = RedisClient.create(vertx, new RedisOptions()
                 .setHost(config.getRedisHost())
                 .setAuth(config.getRedisAuth()));
@@ -49,18 +49,25 @@ public class ServerVerticle extends AbstractVerticle {
                 .put("url", "jdbc:postgresql://" + config.getPostgresHost() + "/" + config.getPostgresName())
                 .put("user", config.getPostgresUser())
                 .put("password", config.getPostgresAuth())
-                .put("driver_class", config.getPostgresDriver()));
-        RentalRedisHandler rentalRedisHandler = new RentalRedisHandler(this.redisClient);
-        RentalJdbcHandler rentalJdbcHandler = new RentalJdbcHandler(this.jdbcClient);
-        GCSAuthHandler gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
-        this.rentalHandler = new RentalHandler(rentalRedisHandler, rentalJdbcHandler, gcsAuthHandler);
+                .put("driver_class", config.getPostgresDriver())
+                .put("socketTimeout", 5));
+        LOG.info("Redis Host: " + config.getRedisHost());
+        LOG.info("Postgres Host: " + config.getPostgresHost());
 
         UserRedisHandler userRedisHandler = new UserRedisHandler(this.redisClient);
         UserJdbcHandler userJdbcHandler = new UserJdbcHandler(this.jdbcClient);
         this.userHandler = new UserHandler(userRedisHandler, userJdbcHandler);
 
+        RentalRedisHandler rentalRedisHandler = new RentalRedisHandler(this.redisClient);
+        RentalJdbcHandler rentalJdbcHandler = new RentalJdbcHandler(this.jdbcClient);
+        GCSAuthHandler gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
+        this.rentalHandler = new RentalHandler(rentalRedisHandler, rentalJdbcHandler, gcsAuthHandler, userHandler);
+
+        UserAuthRedisHandler userAuthRedisHandler = new UserAuthRedisHandler(this.redisClient);
+        UserAuthJdbcHandler userAuthJdbcHandler = new UserAuthJdbcHandler(this.jdbcClient);
         this.jdbcAuthProvider = createJdbcAuthProvider();
-        this.userAuthHandler = new UserAuthHandler(this.jdbcAuthProvider, this.jdbcClient);
+        this.userAuthHandler = new UserAuthHandler(userAuthRedisHandler, userAuthJdbcHandler, this.jdbcAuthProvider);
+
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
@@ -85,7 +92,7 @@ public class ServerVerticle extends AbstractVerticle {
 
     private JDBCAuth createJdbcAuthProvider() {
         JDBCAuth authProvider = JDBCAuth.create(vertx, this.jdbcClient);
-        authProvider.setAuthenticationQuery("SELECT PASSWORD, PASSWORD_SALT FROM eventbus.USERS WHERE ID = ?");
+        authProvider.setAuthenticationQuery("SELECT PASSWORD, PASSWORD_SALT FROM eventbus.USERS WHERE ID=?");
         authProvider.setNonces(new JsonArray().add("KuMLwD0j1rB1yx0iOc").add("uDcCj0SkINwqOzxxGI"));
         return authProvider;
     }
@@ -99,26 +106,21 @@ public class ServerVerticle extends AbstractVerticle {
         router.route("/api/public/login").handler(sessionHandler);
         router.route("/api/public/login").handler(userSessionHandler);
         router.post("/api/public/login").handler(userAuthHandler::authenticate);
-        router.post("/api/public/register").handler(userAuthHandler::register);
+        router.post("/api/public/signup").handler(userAuthHandler::signUp);
+        // router.post("/api/public/register").handler(userAuthHandler::register);
+
         router.post("/api/public/search").handler(rentalHandler::search);
         router.post("/api/public/location").handler(rentalHandler::searchLocation);
+        router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
+        router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
 
         router.route("/api/private/*").handler(sessionHandler);
         router.route("/api/private/*").handler(userSessionHandler);
-        // router.route("/api/private/*").handler(redirectAuthHandler);
-
-        // Main logic
-        router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
-        router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
         router.post("/api/private/rental").handler(rentalHandler::put);
         router.put("/api/private/rental/:rentalId").handler(rentalHandler::update);
         router.delete("/api/private/rental/:rentalId").handler(rentalHandler::delete);
         router.get("/api/private/user").handler(userHandler::get);
 
-        // Order is important, don't move the positions
-        // router.route("/dashboard-view/dashboard.html").handler(sessionHandler);
-        // router.route("/dashboard-view/dashboard.html").handler(userSessionHandler);
-        // router.route("/dashboard-view/dashboard.html").handler(redirectAuthHandler);
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 
         return router;

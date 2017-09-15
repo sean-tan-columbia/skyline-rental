@@ -34,8 +34,6 @@
     color: #6d9eeb;
     text-decoration: none;
 }
-#body {
-}
 #body div {
     float: left;
 }
@@ -225,7 +223,5 @@
     padding-top: 15px;
     font-size: 16px;
     margin-bottom: 50px;
-}
-#body-right {
-
+    font-family: "Arial";
 }

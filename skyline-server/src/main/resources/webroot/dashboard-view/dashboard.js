@@ -1,6 +1,29 @@
 angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 
-.controller('userDashboardController', function ($scope, $route, $http, config, $q, $window, userInfo) {
+.factory('dataSharedService', function($rootScope, $http, config) {
+    var sharedService = {};
+    sharedService.httpGetRental = function(rentalId) {
+        $http.get(config.serverUrl + "/api/public/rental/" + rentalId)
+        .then(function(response) {
+            $rootScope.$broadcast('dashRentalGet', response.data);
+        });
+    };
+    sharedService.clearRental = function() {
+        $rootScope.$broadcast('dashRentalClear');
+    };
+    sharedService.addRental = function(data) {
+        $rootScope.$broadcast('dashRentalAdd', data);
+    }
+    sharedService.editRental = function(data) {
+        $rootScope.$broadcast('dashRentalEdit', data);
+    }
+    sharedService.alertFailure = function(msg) {
+        $rootScope.$broadcast('dashRentalFail', msg);
+    }
+    return sharedService;
+})
+
+.controller('userDashboardController', function ($scope, $route, $http, config, $q, $window, userInfo, dataSharedService) {
     $scope.rentals = [];
     var user = userInfo.data;
     $scope.id = user.id;
@@ -8,50 +31,68 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
     for (i = 0; i < user.rentals.length; i++) {
         rentalObj = user.rentals[i];
         address_parts = rentalObj.address.split(",")
-        rentalObj.displayAddress = address_parts[0] + "," + address_parts[1];
-        rentalObj.displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
-        $scope.rentals.push(rentalObj);
+        displayAddress = address_parts[0] + "," + address_parts[1];
+        displayCreatedTimestamp = parseDate(rentalObj.createdTimestamp);
+        $scope.rentals.push({'id':rentalObj.id,'displayAddress':displayAddress,'displayCreatedTimestamp':displayCreatedTimestamp});
     }
     $scope.deleteRental = function(rentalIndex) {
         rentalId = $scope.rentals[rentalIndex].id;
+        console.log($scope.rentals[rentalIndex].displayAddress);
         $http.delete(config.serverUrl + "/api/private/rental/" + rentalId)
-        .then(function(r) {
-            if (r.status == 200) {
-                // gcstoken = r.data;
-                // // imageIds = $scope.rentals[rentalIndex].imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
-                // imageIds = $scope.rentals[rentalIndex].imageIds
-                // $scope.deleteImages(gcstoken, imageIds, function() {
-                    if ($scope.rentals.length > 1) {
-                        $route.reload();
-                    } else {
-                        $window.location.href = '/';
+        .then(function(r1) {
+            if (r1.status == 200) {
+                dataSharedService.clearRental();
+                $scope.alertSuccessInfo = 'Rental at ' + $scope.rentals[rentalIndex].displayAddress +' has been deleted.';
+                $scope.alertSuccessShow = true;
+
+                targetIndex = -1;
+                for (i = 0; i < $scope.rentals.length; i++) {
+                    if ($scope.rentals[i].id == rentalId) {
+                        targetIndex = i;
+                        break;
                     }
-                // });
-            } else if (r.status == 202) {
-                console.log('Rental stays unchanged');
+                }
+                if (targetIndex != -1) {
+                    $scope.rentals.splice(targetIndex, 1);
+                }
+                $window.scrollTo(0, 0);
+            } else {
+                $scope.alertFailureInfo = 'There was an error deleting rental at ' + $scope.rentals[rentalIndex].displayAddress;
+                $scope.alertFailureShow = true;
+                $window.scrollTo(0, 0);
             }
         });
     };
-    $scope.deleteImages = function(gcstoken, imageIds, callback) {
-        var promises = [];
-        for (i = 0; i < imageIds.length; i++) {
-            var p = $http({
-                url: config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + imageIds[i].trim(),
-                method: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + gcstoken,
-                           'Content-Type' : 'image/' + 'jpeg' },
-                transformRequest: []
-            });
-            promises.push(p);
-        }
-        $q.all(promises).then(function(results){
-            callback();
-        })
+    $scope.editRental = function(rentalIndex) {
+        rentalId = $scope.rentals[rentalIndex].id;
+        dataSharedService.httpGetRental(rentalId);
     };
+    $scope.clearRental = function() {
+        dataSharedService.clearRental();
+    };
+    $scope.$on('dashRentalAdd', function(event, data) {
+        address_parts = data.address.split(",")
+        displayAddress = address_parts[0] + "," + address_parts[1];
+        displayCreatedTimestamp = parseDate((new Date()).getTime());
+        $scope.rentals.unshift({'id':data.id,'displayAddress':displayAddress,'displayCreatedTimestamp':displayCreatedTimestamp});
+        $scope.alertSuccessInfo = 'New rental at ' + data.address +' has been created.';
+        $scope.alertSuccessShow = true;
+        $window.scrollTo(0, 0);
+    });
+    $scope.$on('dashRentalEdit', function(event, data) {
+        $scope.alertSuccessInfo = 'Rental at ' + data.address +' has been updated.';
+        $scope.alertSuccessShow = true;
+        $window.scrollTo(0, 0);
+    });
+    $scope.$on('dashRentalFail', function(event, msg) {
+        $scope.alertFailureInfo = msg;
+        $scope.alertFailureShow = true;
+        $window.scrollTo(0, 0);
+    });
 })
 
-.directive("imagereader", ['$http', '$q', 'NgMap', '$window', 'config', '$routeParams', '$route',
-                            function ($http, $q, NgMap, $window, config, $routeParams, $route) {
+.directive("imagereader", ['$http', '$q', 'NgMap', '$window', 'config', '$routeParams', '$route', 'dataSharedService',
+                            function ($http, $q, NgMap, $window, config, $routeParams, $route, dataSharedService) {
     return {
         restrict: 'E',
         templateUrl: 'dashboard-view/rental-info.html',
@@ -86,84 +127,8 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     reader.readAsDataURL(changeEvent.target.files[0]);
                 }
             });
-            scope.httpGetRental = function(rentalId) {
-                $http.get(config.serverUrl + "/api/public/rental/" + rentalId)
-                .then(function(response) {
-                    rentalObj = response.data
-                    if (rentalObj.id == undefined) {
-                        return;
-                    }
-                    scope.rental = rentalObj;
-                    scope.inputPrice = parseFloat(rentalObj.price);
-                    scope.address = rentalObj.address;
-                    scope.lat = parseFloat(rentalObj.latitude);
-                    scope.lng = parseFloat(rentalObj.longitude);
-                    scope.inputMoveInDate = new Date(parseInt(rentalObj.startDate));
-                    scope.description = rentalObj.description;
-                    if (rentalObj.endDate != undefined) {
-                        scope.inputMoveOutDate = new Date(parseInt(rentalObj.endDate));
-                    }
-                    switch (rentalObj.bedroom) {
-                        case "STUDIO":
-                            scope.selectedBedroom = "0";
-                            break;
-                        case "ONE":
-                            scope.selectedBedroom = "1";
-                            break;
-                        case "TWO":
-                            scope.selectedBedroom = "2";
-                            break;
-                        case "THREE":
-                            scope.selectedBedroom = "3";
-                            break;
-                    }
-                    switch (rentalObj.bathroom) {
-                        case "SHARED":
-                            scope.selectedBathroom = "0";
-                            break;
-                        case "ONE":
-                            scope.selectedBathroom = "1";
-                            break;
-                        case "TWO":
-                            scope.selectedBathroom = "2";
-                            break;
-                        case "THREE":
-                            scope.selectedBathroom = "3";
-                            break;
-                    };
-                    switch (rentalObj.quantifier) {
-                        case "MONTH":
-                            scope.selectedQuantifier = "0";
-                            break;
-                        case "DAY":
-                            scope.selectedQuantifier = "1";
-                            break;
-                    }
-                    // scope.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(",")
-                    scope.imageIds = rentalObj.imageIds;
-                    scope.images = [];
-                    for (i = 0; i < scope.imageIds.length; i++) {
-                        scope.images.push({});
-                    }
-                    for (i = 0; i < scope.imageIds.length; i++) {
-                        scope.existedImages.add(scope.imageIds[i]);
-                        imageUrl = config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + scope.imageIds[i].trim();
-                        toBase64(i, imageUrl, function(imageIndex, base64){
-                            scope.$apply(function() {
-                                scope.images[imageIndex] = {'id': scope.imageIds[imageIndex].trim(), 'base64': base64, 'type': 'jpeg'};
-                            });
-                        });
-                    }
-                });
-            };
-            if ($routeParams.rentalId != undefined) {
-                scope.existedImages = new Set();
-                scope.deletedImages = [];
-                scope.rentalId = $routeParams.rentalId;
-                scope.httpGetRental(scope.rentalId);
-                console.log(scope.rentalId);
-            } else {
-                // TODO: Make sure hashids doesn't use '/'
+            scope.init = function() {
+                scope.mode = 'new';
                 var posterHashids = new Hashids("SKYLINE_POSTER");
                 $http.get("https://ipinfo.io")
                 .then(function(response) {
@@ -171,8 +136,92 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     scope.rentalId = posterHashids.encode(ip2int(ipinfo.ip), Date.now());
                     console.log(scope.rentalId);
                 });
-            };
-            scope.remove = function(index) {
+                scope.existedImages = new Set();
+                scope.deletedImages = [];
+                scope.rental = undefined;
+                scope.inputPrice = undefined;
+                scope.address = undefined;
+                scope.lat = undefined;
+                scope.lng = undefined;
+                scope.inputMoveInDate = undefined;
+                scope.inputMoveOutDate = undefined;
+                scope.description = undefined;
+                scope.selectedBedroom = undefined;
+                scope.selectedBathroom = undefined;
+                scope.selectedQuantifier = "0";
+                scope.images = [];
+            }
+            scope.$on('dashRentalClear', function() {
+                scope.init();
+            });
+            scope.$on('dashRentalGet', function(event, data) {
+                scope.mode = 'edit';
+                scope.existedImages = new Set();
+                scope.deletedImages = [];
+                rentalObj = data;
+                scope.rental = rentalObj;
+                scope.rentalId = rentalObj.id;
+                scope.inputPrice = parseFloat(rentalObj.price);
+                scope.address = rentalObj.address;
+                scope.lat = parseFloat(rentalObj.latitude);
+                scope.lng = parseFloat(rentalObj.longitude);
+                scope.inputMoveInDate = new Date(parseInt(rentalObj.startDate));
+                scope.description = rentalObj.description;
+                if (rentalObj.endDate != undefined) {
+                    scope.inputMoveOutDate = new Date(parseInt(rentalObj.endDate));
+                }
+                switch (rentalObj.bedroom) {
+                    case "STUDIO":
+                        scope.selectedBedroom = "0";
+                        break;
+                    case "ONE":
+                        scope.selectedBedroom = "1";
+                        break;
+                    case "TWO":
+                        scope.selectedBedroom = "2";
+                        break;
+                    case "THREE":
+                        scope.selectedBedroom = "3";
+                        break;
+                }
+                switch (rentalObj.bathroom) {
+                    case "SHARED":
+                        scope.selectedBathroom = "0";
+                        break;
+                    case "ONE":
+                        scope.selectedBathroom = "1";
+                        break;
+                    case "TWO":
+                        scope.selectedBathroom = "2";
+                        break;
+                    case "THREE":
+                        scope.selectedBathroom = "3";
+                        break;
+                };
+                switch (rentalObj.quantifier) {
+                    case "MONTH":
+                        scope.selectedQuantifier = "0";
+                        break;
+                    case "DAY":
+                        scope.selectedQuantifier = "1";
+                        break;
+                }
+                var imageIds = rentalObj.imageIds;
+                scope.images = [];
+                for (i = 0; i < imageIds.length; i++) {
+                    scope.images.push({});
+                }
+                for (i = 0; i < imageIds.length; i++) {
+                    scope.existedImages.add(imageIds[i]);
+                    imageUrl = config.googleCloudStorageBaseUrl + '/' + config.googleCloudStorageBucket + '/' + imageIds[i].trim();
+                    toBase64(i, imageUrl, function(imageIndex, base64){
+                        scope.$apply(function() {
+                            scope.images[imageIndex] = {'id': imageIds[imageIndex].trim(), 'base64': base64, 'type': 'jpeg'};
+                        });
+                    });
+                }
+            });
+            scope.removeImage = function(index) {
                 if (scope.deletedImages != undefined) {
                     scope.deletedImages.push(scope.images[index].id);
                 }
@@ -211,7 +260,6 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     promises.push(p);
                 }
                 $q.all(promises).then(function(results){
-                    // scope.postRental();
                     callback();
                 })
             }
@@ -243,19 +291,21 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                     image_ids    : imageIds,
                     description  : scope.description,
                 };
-                if ($routeParams.rentalId == undefined) {
+                if (scope.mode == 'new') {
                     $http({ method: 'POST',
                         url: config.serverUrl + '/api/private/rental',
                         data: data
                     }).then(function(response) {
                         if (response.status == 201) {
                             gcstoken = response.data;
-                            scope.uploadImages(gcstoken, scope.images, function() { $route.reload(); });
+                            scope.uploadImages(gcstoken, scope.images, function() {
+                                dataSharedService.addRental(data);
+                            });
                         } else {
-                            console.log('Rental stays unchanged');
+                            dataSharedService.alertFailure('There was an error creating the rental at ' + data.address);
                         }
                     });
-                } else {
+                } else if (scope.mode == 'edit') {
                     $http({ method: 'PUT',
                         url: config.serverUrl + '/api/private/rental/' + data.id,
                         data: data
@@ -263,10 +313,12 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                         if (response.status == 200) {
                             gcstoken = response.data;
                             scope.uploadImages(gcstoken, scope.images, function() {
-                                scope.deleteImages(gcstoken, scope.deletedImages, function() { $route.reload(); });
+                                scope.deleteImages(gcstoken, scope.deletedImages, function(){
+                                    dataSharedService.editRental(data);
+                                });
                             });
                         } else if (response.status == 202) {
-                            console.log('Rental stays unchanged');
+                            dataSharedService.alertFailure('There was an error updating the rental at ' + data.address);
                         }
                     });
                 }
@@ -283,6 +335,8 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 console.log(scope.place.formatted_address);
                 scope.map.setCenter(scope.place.geometry.location);
             }
+
+            scope.init();
         }
     }
 }]);

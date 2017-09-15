@@ -24,16 +24,20 @@ public class Config {
     private final Long sessionRetryTimeout;
     private final Long sessionTimeout;
 
-    public static Config getInstance() throws IOException {
+    public static Config getInstance(String env) throws IOException {
         if (instance == null) {
-            instance = new Config();
+            instance = new Config(env);
         }
         return instance;
     }
 
-    private Config() throws IOException {
+    private Config(String env) throws IOException {
+        String file = "config/dev.properties";
+        if (env.equals("prod")) {
+            file = "config/prod.properties";
+        }
         Properties properties = new Properties();
-        properties.load(getClass().getClassLoader().getResourceAsStream("config/dev.properties"));
+        properties.load(getClass().getClassLoader().getResourceAsStream(file));
         this.redisHost = properties.getProperty("database.redis.host");
         this.redisAuth = properties.getProperty("database.redis.auth");
         this.postgresHost = properties.getProperty("database.postgres.host");

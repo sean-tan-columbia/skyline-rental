@@ -14,18 +14,32 @@
             <ul>
                 <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
                 <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
-                <li><a href="#/post" style="color:white;opacity:0.9">Post</a></li>
-                <li><a href="#/login" style="color:white;opacity:0.9">Login</a></li>
-                <li><a href="#/register" style="color:white;opacity:0.9">Register</a></li>
+                <li><a href="#/post" style="color:white;opacity:0.9;">Post Rental</a></li>
+                <li><a href="#/login" style="color:white;opacity:0.9">Sign in</a></li>
             </ul>
         </div>
     </div>
 </div>
-<div id="dashboard"
-     style="width:100%;float:left;margin-top:10px;margin-bottom:100px;">
-    <div id="dashboard-left" style="float:left;width:25%;">
+<div id="alerts">
+    <div id="alert_success" ng-show="alertSuccessShow" ng-init="alertSuccessShow=false"
+         style="margin-top:20px;margin-left:8%;width:75%;padding:20px;background-color:white;border-width:1px;border-color:green;border-style:solid;color:white;">
+        <span style="color:green;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+              ng-click="alertSuccessShow=false">&times;</span>
+        <strong style="color:green">Success!</strong>
+        <p style="color:green;display:inline;">{{alertSuccessInfo}}</p>
+    </div>
+    <div id="alert_failure" ng-show="alertFailureShow" ng-init="alertFailureShow=false"
+         style="margin-top:20px;margin-left:8%;width:75%;padding:20px;background-color:white;border-width:1px;border-color:#f44336;border-style:solid;color:white;">
+        <span style="color:#f44336;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+              ng-click="alertFailureShow=false">&times;</span>
+        <strong style="color:#f44336">Warning!</strong>
+        <p style="color:#f44336;display:inline;">{{alertFailureInfo}}</p>
+    </div>
+</div>
+<div id="dashboard" style="width:100%;float:left;margin-top:0px;padding-top:25px;background-color:#F5F5F5">
+    <div id="dashboard-left" style="float:left;width:23%;">
         <div id="dashboard-me"
-             style="width:70%;height:350px;border-width:1px;border-color:#D3D3D3;border-style:solid;float:right;border-radius:4px;margin-right:15px;">
+             style="width:70%;height:400px;float:right;border-radius:2px;margin-right:15px;background-color:white;box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);">
             <div class="dashboard-me-info"
                  style="height:200px;border-bottom-width:1px;border-bottom-color:#D3D3D3;border-bottom-style:solid;">
                 <div class="dashboard-me-photo" style="margin-top:15px;text-align:center;">
@@ -36,22 +50,28 @@
                 </p>
             </div>
             <div class="dashboard-me-contact" style="padding-top:10px;padding-left:10px;">
-                <p>Email:{{email}}</p>
-                <p>WeChat:{{wechat}}</p>
+                <div style="text-align:center;">
+                    <img src="../asset/image/email-24.png" style="margin-top:10px;">
+                    <p style="margin-top:0px;">{{email}}</p>
+                </div>
+                <div style="text-align:center;">
+                    <img src="../asset/image/wechat-32.png" style="width:28px;height:28px;margin-top:10px;">
+                    <p style="margin-top:0px;">{{wechat}}jinxiongtan</p>
+                </div>
             </div>
         </div>
         <div style="margin-left:38%;width:100%;height:20px;text-align:center;">
-            <a class="new-rental-button" href="#/post">New</a>
+            <a class="new-rental-button" href ng-click="clearRental()">New</a>
         </div>
     </div>
-    <div id="dashboard-middle" style="float:left;width:36%;margin-left:0.5%;height:1600px;">
-        <imagereader images="[]" posterId="{{posterId}}"></imagereader>
+    <div id="dashboard-middle" style="float:left;width:36%;margin-left:0.3%;height:1600px;">
+        <imagereader posterId="{{posterId}}"></imagereader>
     </div>
     <div id="dashboard-right"
-         style="float:left;width:27%;margin-left:2.5%;padding-bottom:15px;border-width:1px;border-color:#D3D3D3;border-style:solid;border-radius:4px;">
-        <p style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding-left:15px;padding-bottom:15px;font-size:18px;font-family:Arial">
-            Search My Posts:
-            <input style="margin-left:10px;height:25px;" ng-model="myPostSearch">
+         style="float:left;width:27%;margin-left:1.5%;padding-bottom:15px;border-width:1px;border-radius:2px;background-color:white;box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);">
+        <p style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding-left:15px;padding-bottom:15px;font-size:17px;font-family:Arial">
+            Search:
+            <input style="margin-left:10px;height:25px;width:70%;padding-left:5px;" ng-model="myPostSearch">
         </p>
         <div id="my-post-scroll" style="height:420px;overflow-y:scroll;overflow-x:hidden;">
             <div id="dashboard-me-post">
@@ -59,9 +79,11 @@
                     <table>
                         <tr ng-repeat="rental in rentals | filter:myPostSearch">
                             <td width="270px;"><a href="#/detail/{{rental.id}}" target="_blank"
-                                                  style="text-decoration: none;">{{rental.displayAddress}}</a></td>
+                                                  style="text-decoration:none;">{{rental.displayAddress}}</a></td>
                             <td width="100px;">{{rental.displayCreatedTimestamp}}</td>
-                            <td width="20px;"><a href="#/edit/{{rental.id}}"><img src="../asset/image/edit-16.png"></a>
+                            <!--<td width="20px;"><a href="#/edit/{{rental.id}}"><img src="../asset/image/edit-16.png"></a>-->
+                            <td width="20px;"><a href ng-click="editRental($index)"><img
+                                    src="../asset/image/edit-16.png"></a>
                             </td>
                             <td width="20px;"><a href ng-click="deleteRental($index)"><img
                                     src="../asset/image/delete-16.png"></a></td>
