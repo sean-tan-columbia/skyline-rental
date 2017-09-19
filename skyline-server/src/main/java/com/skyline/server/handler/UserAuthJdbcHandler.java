@@ -38,15 +38,20 @@ public class UserAuthJdbcHandler {
         });
     }
 
-    public void select(String email, Handler<AsyncResult<String>> resultHandler) {
-        connection.queryWithParams("SELECT ID FROM eventbus.USERS WHERE EMAIL=?", new JsonArray().add(email), r -> {
+    public void select(String email, Handler<AsyncResult<User>> resultHandler) {
+        connection.queryWithParams("SELECT ID,NAME,EMAIL,WECHAT_ID FROM eventbus.USERS WHERE EMAIL=?", new JsonArray().add(email), r -> {
             if (r.failed()) {
                 resultHandler.handle(Future.failedFuture(r.cause()));
                 return;
             }
             List<JsonArray> rows = r.result().getResults();
             if (rows.size() == 1) {
-                resultHandler.handle(Future.succeededFuture(rows.get(0).getString(0)));
+                JsonArray row = rows.get(0);
+                User user = new User(row.getString(0))
+                        .setName(row.getString(1))
+                        .setEmail(row.getString(2))
+                        .setWechatId(row.getString(3));
+                resultHandler.handle(Future.succeededFuture(user));
             } else if (rows.size() == 0) {
                 resultHandler.handle(Future.failedFuture(new NullPointerException()));
             } else {

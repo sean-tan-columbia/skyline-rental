@@ -9,7 +9,8 @@
 #header-icon {
     margin-left: 0px;
     margin-top: 10px;
-    width: 100px;
+    padding-left: 30px;
+    width: 10%;
 }
 #header-icon label {
     margin-left: 0px;
@@ -20,9 +21,9 @@
 #header-search {
     display:inline;
     margin-top:7px;
-    margin-left:-150px;
+    margin-left:10px;
     height:32px;
-    width:680px;
+    width:35%;
     float: left;
 }
 #header-search input {
@@ -43,7 +44,7 @@
 }
 #header-down {
     float: left;
-    height: 50px;
+    height: 60px;
 }
 #header-down .md-datepicker-input-container {
     width: 120px;
@@ -54,8 +55,22 @@
     font-size: 16px;
     width: 100px;
 }
+#header-menu {
+    padding-top: 10px;
+}
 #header-menu ul {
     margin-left: 30px;
+}
+#header-menu ul li {
+    display: inline;
+    padding-left: 25px;
+}
+#header-menu ul li a {
+    font-family: "Arial";
+    font-size: 19px;
+    font-weight: bold;
+    color: #6d9eeb;
+    text-decoration: none;
 }
 #header-down {
     width: 100%;
@@ -122,14 +137,14 @@
     width: 550px;
 }
 #item-scroll {
-    height: calc(100vh - 215px);
+    height: calc(100vh - 265px);
     overflow-y: scroll;
     overflow-x:hidden;
-    padding-top: 2px;
+    padding-top: 5px;
 }
 #item-scroll div.item-container {
     width: 535px;
-    height: 160px;
+    height: 200px;
     margin-left: 10px;
     margin-bottom: 5px;
     border-color: #D3D3D3;
@@ -137,10 +152,10 @@
     border-width: 1px;
 }
 #item-scroll div.item-container:hover {
-    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.6);
+    /* box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.6); */
 }
 #item-scroll div.item-container div.img-container {
-    width: 240px;
+    width: 260px;
     height: 100%;
     float: left;
     background-color: #D3D3D3;
@@ -156,15 +171,15 @@
     position:relative;
     z-index: 1;
     left: 0;
-    bottom: 90px;
+    bottom: 105px;
     opacity: 1.0;
 }
 #item-scroll div.item-container div.img-container input.arrow-next {
     overflow:hidden;
     position:relative;
     z-index: 1;
-    left: 200px;
-    bottom: 90px;
+    left: 220px;
+    bottom: 105px;
     opacity: 1.0;
 }
 #item-scroll div.item-container div.content-container {
@@ -174,7 +189,7 @@
     margin-left: 10px;
     margin-top: 15px;
     margin-bottom: 12px;
-    width: 280px;
+    width: 260px;
     padding-bottom: 10px;
     border-bottom-color: #D3D3D3;
     border-bottom-style: solid;
@@ -184,7 +199,7 @@
 #item-scroll div.item-container div.content-container div.upper-container div.text-price {
     font-family: Helvetica;
     color: green;
-    font-size: 32px;
+    font-size: 34px;
     float: left;
 }
 #item-scroll div.item-container div.content-container div.upper-container div.text-quantifier {
@@ -199,13 +214,12 @@
     text-align: right;
 }
 #item-scroll div.item-container div.content-container div.upper-container div.button-selections a.button-like {
-    margin-left: 35px;
+    margin-left: 30px;
     cursor: pointer;
 }
-
 #item-scroll div.item-container div.content-container div.feature-container {
     margin-left: 10px;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 #item-scroll div.item-container div.content-container div.feature-container div.feature-content {
 
@@ -224,8 +238,8 @@
     float: left;
 }
 #item-scroll div.item-container div.content-container div.time-container {
-    margin-top: 35px;
-    margin-left: 40px;
+    margin-top: 60px;
+    margin-left: 20px;
     text-align: right;
     float: left;
     color: grey;
@@ -233,12 +247,11 @@
 }
 #navi {
     width: 100%;
-    margin-top: -5px;
+    margin-top: 15px;
 }
 #navi ul {
-    width: 500px;
+    width: 100%;
     list-style-type: none;
-    padding-left: 30px;
     overflow: hidden;
     background-color: transparent;
 }
@@ -282,14 +295,6 @@
 #ng-map div.custom-marker-container img {
     height: 100%;
     width: auto;
-}
-#map-back-button {
-    width: 35%;
-    height: 30px;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius:2px;
-    padding-top:2px;
 }
 #favorite-on-off {
     background:blue;

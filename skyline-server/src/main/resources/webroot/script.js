@@ -1,7 +1,6 @@
 angular.module("skyline-rental", ['ngRoute',
                                   'skyline-discover',
                                   'skyline-detail',
-                                  'skyline-post',
                                   'skyline-dashboard',
                                   'skyline-auth'])
 
@@ -52,7 +51,7 @@ angular.module("skyline-rental", ['ngRoute',
         .when('/reset', {
             templateUrl: 'auth-view/reset.html',
         })
-        .when('/set_password', {
+        .when('/set_password/:type/:salt', {
             templateUrl: 'auth-view/set_password.html',
         })
 }])

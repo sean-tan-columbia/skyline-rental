@@ -28,7 +28,10 @@ CREATE TABLE eventbus.USERS (
     password VARCHAR(255) NOT NULL,
     password_salt VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
-    wechat_id VARCHAR(255) NOT NULL,
+    wechat_id VARCHAR(255),
+    status VARCHAR(10),
+    created_timestamp TIMESTAMP NOT NULL,
+    last_updated_timestamp TIMESTAMP NOT NULL,
     PRIMARY KEY (id)
 );
 

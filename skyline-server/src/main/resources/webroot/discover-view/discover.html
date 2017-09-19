@@ -14,8 +14,8 @@
 <div ng-controller="rentalDiscoverController">
     <div id="header">
         <div id="header-top">
-            <div id="header-icon">
-                <label>Skyline</label>
+            <div id="header-icon" style="margin-top:5px;">
+                <label style="font-size:34px;">Rentzya</label>
             </div>
             <div id="header-search">
                 <input type="text"
@@ -27,11 +27,10 @@
             </div>
             <div id="header-menu">
                 <ul>
-                    <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
-                    <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
-                    <li><a href="#/post" style="color:white;opacity:0.9;">Post rental</a></li>
-                    <li><a href="#/post" style="color:white;opacity:0.9">Sign in</a></li>
-                    <li><a href="#/register" style="color:white;opacity:0.9">Sign up</a></li>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
+                    <li><a href="#/post" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                    <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
                 </ul>
             </div>
         </div>
@@ -76,8 +75,8 @@
                 </md-input-container>
 
                 <div style="margin-left:34px;">
-                    <input type="submit" id="submit-search" value="Search" ng-click="submitSearch()"/>
-                    <input type="submit" id="submit-clear" value="Clear" ng-click="clearSearch()"/>
+                    <input type="submit" id="submit-search" value="SEARCH" ng-click="submitSearch()"/>
+                    <input type="submit" id="submit-clear" value="CLEAR" ng-click="clearSearch()"/>
                 </div>
             </div>
         </div>
@@ -85,6 +84,13 @@
     <div id="main">
         <div id="main-left" class="floating">
             <div id="map-container">
+                <md-button class="md-raised"
+                           style="height:10px;position:absolute;z-index:1;margin-top:10px;left:calc(100vw - 675px);"
+                           ng-click="returnToPrevMap()">BACK
+                </md-button>
+                <!--<input type="image"-->
+                <!--src="../asset/image/map-return-32.png"-->
+                <!--style="position:absolute;z-index:1;margin-left:63.5%;margin-top:10px;width:28px;height:28px;box-shadow: 0px 10px 40px -10px rgba(0,0,0,0.75);border-radius:2px;">-->
                 <ng-map id="ng-map"
                         style="height:100%"
                         center="40.785,-73.968"
@@ -110,28 +116,46 @@
             </div>
         </div>
         <div id="main-right" class="floating">
-            <div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">
-                <div style="display:inline;float:left;">
-                    <input type="submit"
-                           id="map-back-button"
-                           ng-click="returnToPrevMap()"
-                           ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"
-                           value="Back to Prev Map View" style="width:auto">
-                </div>
-                <select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"
-                        ng-init="search.selectedSorter='latest'"
-                        style="border:1px solid #ccc;font-size:15px;height:30px;width:180px;margin-left:10px;outline:None;background-color:white">
-                    <option value="latest" ng-selected="true">Latest</option>
-                    <option value="expensive">Expensive</option>
-                    <option value="cheap">Cheap</option>
-                </select>
+            <!--<div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">-->
+            <!--<div style="display:inline;float:left;">-->
+            <!--<input type="submit"-->
+            <!--id="map-back-button"-->
+            <!--ng-click="returnToPrevMap()"-->
+            <!--ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"-->
+            <!--value="Back to Prev Map View" style="width:auto">-->
+            <!--</div>-->
+            <!--<select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"-->
+            <!--ng-init="search.selectedSorter='latest'"-->
+            <!--style="border:1px solid #ccc;font-size:15px;height:30px;width:180px;margin-left:0px;outline:None;background-color:white">-->
+            <!--<option value="latest" ng-selected="true">Latest</option>-->
+            <!--<option value="expensive">Expensive</option>-->
+            <!--<option value="cheap">Cheap</option>-->
+            <!--</select>-->
+
+            <!--<md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"-->
+            <!--class="md-primary"-->
+            <!--style="margin-top:0px;margin-bottom:0px;margin-left:10px;"-->
+            <!--ng-change="search()">-->
+            <!--Favorites-->
+            <!--</md-checkbox>-->
+            <!--</div>-->
+
+            <div class="layout layout-row layout-margin" style="margin-top:0px;">
+                <md-input-container md-no-float style="width:350px;margin-left:5px;height:20px;">
+                    <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by">
+                        <md-option value="latest" ng-selected="true">ORDER BY DATE: LATEST</md-option>
+                        <md-option value="expensive">ORDER BY PRICE: HIGH TO LOW</md-option>
+                        <md-option value="cheap">ORDER BY PRICE: LOW TO HIGH</md-option>
+                    </md-select>
+                </md-input-container>
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
                              class="md-primary"
-                             style="margin-top:0px;margin-bottom:0px;margin-left:10px;"
-                             ng-change="search()">
-                    Favorites
+                             style="margin-top:16px;;margin-bottom:2px;margin-left:10px;"
+                             ng-click="search()">
+                    Show Favorites
                 </md-checkbox>
             </div>
+
             <div id="item-scroll">
                 <div class="item-container"
                      ng-repeat="rental in rentals"
@@ -144,7 +168,7 @@
                                  ng-init="slide_index=$index"
                                  ng-hide="!isCurrentSlideIndex(rental_index, slide_index)"
                                  ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}"
-                                 style="width:240px;">
+                                 style="width:260px;">
                         </a>
                         <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_white-16.png"
                                ng-click="prevSlide(rental_index)">
@@ -157,7 +181,8 @@
                             <div class="text-quantifier">/ {{rental.quantifier}}</div>
                             <div class="button-selections">
                                 <a class="button-like" ng-click="toggleLikeUnlike($index)">
-                                    <img ng-src="{{rental.likedImg}}">
+                                    <img ng-src="{{rental.likedImg}}"
+                                         style="height:55%;width:55%;margin-top:3px;margin-left:-5px;">
                                 </a>
                             </div>
                         </div>
@@ -170,27 +195,29 @@
                             </div>
                         </div>
                         <div class="date-container">
-                            Move-In: {{rental.moveInDate}}
+                            Move-in: {{rental.moveInDate}}
                         </div>
-                        <br>
                         <div class="time-container">{{rental.age}} ago</div>
                     </div>
                 </div>
             </div>
             <div id="navi">
-                <ul style="float:left">
-                    <li class="prev"><a style="cursor:pointer" ng-click="prevPages()"><img
-                            src="../asset/image/back-arrow-circular-32.png"></a></li>
-                    <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}" >
-                        <a class="page" ng-click="selectPage(page)">{{page}}</a>
-                    </li>
-                    <li class="next"><a style="cursor:pointer" ng-click="nextPages()"><img
-                            src="../asset/image/forward-arrow-circular-32.png"></a></li>
-                    <div style="margin-top:6px;">
-                        <p style="display:inline;margin-left:50px;font-size:17px;color:#A9A9A9;">{{totalIds}}
-                            results</p>
-                    </div>
-                </ul>
+                <div>
+                    <ul style="margin:auto;width:50%;">
+                        <li class="prev"><a style="cursor:pointer" ng-click="prevPages()"><img
+                                src="../asset/image/back-arrow-circular-32.png"></a></li>
+                        <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}">
+                            <a class="page" ng-click="selectPage(page)">{{page}}</a>
+                        </li>
+                        <li class="next"><a style="cursor:pointer" ng-click="nextPages()"><img
+                                src="../asset/image/forward-arrow-circular-32.png"></a></li>
+                    </ul>
+                </div>
+                <div style="margin-top:5px;display:block;">
+                    <p style="display:inline;margin-left:40%;font-size:16px;color:#4169E1;">
+                        {{rentalStartIndex}} - {{rentalEndIndex}} of {{totalIds}} Rentals
+                    </p>
+                </div>
             </div>
         </div>
     </div>

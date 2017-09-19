@@ -10,14 +10,17 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
     $scope.pageSize = 20;
+    $scope.rentalStartIndex = 1;
     $scope.searchParams = {};
     $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
     $scope.isSingleLoc = false;
-    $http.get(config.serverUrl + "/api/public/discover/lastUpdatedTimestamp/desc").then(function(r1) {
-        rentalIds = r1.data;
-        $scope.getRentalsWithIds(rentalIds);
-    });
+//    $http.get(config.serverUrl + "/api/public/discover/lastUpdatedTimestamp/desc").then(function(r1) {
+//        rentalIds = r1.data;
+//        $scope.rentalEndIndex = rentalIds.length > 20 ? 20 : rentalIds.length;
+//        $scope.getRentalsWithIds(rentalIds);
+//    });
     $scope.getRentalsWithIds = function(rentalIds) {
+        $scope.rentalEndIndex = rentalIds.length > 20 ? 20 : rentalIds.length;
         $scope.rentalIds = rentalIds;
         $scope.totalIds = rentalIds.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         $scope.pages = Math.ceil($scope.rentalIds.length / $scope.pageSize);
@@ -40,6 +43,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.currentSlideIndices[rentalIndex] = ($scope.currentSlideIndices[rentalIndex] > 0) ? --$scope.currentSlideIndices[rentalIndex] : $scope.rentals[rentalIndex].imageIds.length - 1;
     };
     $scope.setData = function () {
+        $scope.rentalStartIndex = $scope.pageSize * ($scope.selectedPage - 1) + 1;
+        $scope.rentalEndIndex = $scope.selectedPage * $scope.pageSize + 1;
         var selectedRentalIds = $scope.rentalIds.slice(($scope.pageSize * ($scope.selectedPage - 1)), ($scope.selectedPage * $scope.pageSize));
         $scope.httpGetRentals(selectedRentalIds);
     }
@@ -69,6 +74,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.rentals = [];
         $scope.currentSlideIndices = [];
         likedRentalSet = $scope.getLikedRentalSet();
+        console.log($scope.search.showLiked);
         for (i = 0; i < selectedRentalIds.length; i++) {
             if ($scope.search.showLiked && !likedRentalSet.has(selectedRentalIds[i])) {
                 continue;
@@ -278,7 +284,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
 //                console.log($scope.mapParamStack);
 //            },
 //        3000);
-
+        $scope.saveSearchParams();
         $scope.search.showLiked = false;
         var center = $scope.map.getCenter();
         var bounds = $scope.map.getBounds();
@@ -325,13 +331,12 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             return;
         }
         $scope.targetAddress = undefined;
-        if ($scope.mapParamStack.length == 0) {
+        if ($scope.mapParamStack.length <= 1) {
+            $scope.map.setCenter({'lat':40.785, 'lng':-73.968});
+            $scope.map.setZoom(12);
             return;
         }
         currMapParams = $scope.mapParamStack.pop();
-        if ($scope.mapParamStack.length == 0) {
-            return;
-        }
         prevMapParams = $scope.mapParamStack.pop();
         $scope.map.setCenter(prevMapParams['map_center']);
         $scope.map.setZoom(prevMapParams['map_zoom']);

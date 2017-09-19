@@ -107,7 +107,9 @@ public class ServerVerticle extends AbstractVerticle {
         router.route("/api/public/login").handler(userSessionHandler);
         router.post("/api/public/login").handler(userAuthHandler::authenticate);
         router.post("/api/public/signup").handler(userAuthHandler::signUp);
-        // router.post("/api/public/register").handler(userAuthHandler::register);
+        router.post("/api/public/reset").handler(userAuthHandler::reset);
+        router.get("/api/public/verify/:salt").handler(userAuthHandler::verify);
+        router.post("/api/public/password").handler(userAuthHandler::setPassword);
 
         router.post("/api/public/search").handler(rentalHandler::search);
         router.post("/api/public/location").handler(rentalHandler::searchLocation);

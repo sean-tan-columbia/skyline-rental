@@ -7,15 +7,15 @@
 <body ng-app="skyline-detail">
 <div id="header">
     <div id="header-top">
-        <div id="header-icon">
-            <label>Skyline</label>
+        <div id="header-icon" style="margin-top:5px;">
+            <label style="font-size:34px;">Rentzya</label>
         </div>
         <div id="header-menu">
             <ul>
-                <li><a href="#/discover" style="color:white;opacity:0.9">Home</a></li>
-                <li><a href="#/discover" style="color:white;opacity:0.9">Discover</a></li>
-                <li><a href="#/post" style="color:white;opacity:0.9">Post Rental</a></li>
-                <li><a href="#/post" style="color:white;opacity:0.9">Sign In</a></li>
+                <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
+                <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
+                <li><a href="#/post" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
             </ul>
         </div>
     </div>
@@ -44,16 +44,17 @@
         </div>
         <div id="body-left-info">
             <div class="info-left">
-                <div class="info-left-address">{{short_address}}</div>
-                <br>
-                <div style="margin-top: 15px; font-size: 15px;">Move-in: {{moveInDate}}</div>
-                <div style="margin-top: 15px; margin-left: 50px; font-size: 15px; color: grey">Updated {{rentalAge}}
-                    ago
+                <div style="">{{short_address}}</div>
+                <div style="margin-top:15px;">
+                    <div style="display:inline;font-size:15px;">Move-in: {{moveInDate}}</div>
+                    <div style="display:inline;margin-left:50px;font-size:15px;color:grey">Updated {{rentalAge}} ago
+                    </div>
                 </div>
             </div>
             <div class="info-right">
-                <div>${{rental.price}}</div>
-                <div style="font-size: 12px;margin-top: 30px;margin-left: 3px;">/ {{rental.quantifier}}</div>
+                <div style="display:inline;">${{rental.price}}</div>
+                <div style="font-size:12px;margin-top:30px;margin-left:-5px;display:inline;">/ {{rental.quantifier}}
+                </div>
             </div>
         </div>
         <div id="body-left-feature">
@@ -61,15 +62,15 @@
                 <div class="feature-item">
                     <img src="../asset/image/bed.png">
                     <div class="feature-text">
-                        <div style="float: left">{{bedroom}}</div>
-                        <div style="color: grey; margin-left: 5px;">Bed</div>
+                        <div style="text-align:center;">{{bedroom}}</div>
+                        <div style="color: grey; margin-left:0px;">Bed</div>
                     </div>
                 </div>
                 <div class="feature-item">
                     <img src="../asset/image/bathtub.png">
                     <div class="feature-text">
-                        <div style="float: left">{{bathroom}}</div>
-                        <div style="color: grey; margin-left: 5px;">Bath</div>
+                        <div style="text-align:center;">{{bathroom}}</div>
+                        <div style="color:grey;margin-left:0px;">Bath</div>
                     </div>
                 </div>
             </div>
@@ -78,13 +79,10 @@
             <div class="description-title">
                 Description:
             </div>
-            <br>
             <div class="description-content">
                 <pre style="white-space:pre-wrap;width:700px;">{{rental.description}}</pre>
             </div>
         </div>
-    </div>
-    <div id="body-right">
     </div>
 </div>
 </body>
