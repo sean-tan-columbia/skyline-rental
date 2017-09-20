@@ -24,6 +24,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.rentalIds = rentalIds;
         $scope.totalIds = rentalIds.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         $scope.pages = Math.ceil($scope.rentalIds.length / $scope.pageSize);
+        $scope.rentalNavAutoWidth = (0.3 + 0.05 * ($scope.pages - 1)) * 100 + "%"; // Calculate the auto nav bar width;
         $scope.newPages = $scope.pages > 5 ? 5 : $scope.pages;
         $scope.selectedPage = 1;
         $scope.selectedRentalIds = $scope.rentalIds.slice(0, $scope.pageSize);

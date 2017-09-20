@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Skyline: New York Rental for Students</title>
+    <title>Journey: Start Your Journey with Your New Home</title>
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
@@ -15,7 +15,7 @@
     <div id="header">
         <div id="header-top">
             <div id="header-icon" style="margin-top:5px;">
-                <label style="font-size:34px;">Rentzya</label>
+                <label style="font-size:34px;font-family:Trebuchet MS">journey</label>
             </div>
             <div id="header-search">
                 <input type="text"
@@ -97,7 +97,8 @@
                         zoom="12"
                         default-style="false"
                         on-click="closeAllCustomMarker()"
-                        on-tilesloaded="searchMap()">
+                        on-tilesloaded="searchMap()"
+                        street-view-control="false">
                     <marker ng-repeat="r in rentals"
                             position="{{r.latitude}},{{r.longitude}}"
                             on-click="searchLoc(rentals[$index])"
@@ -203,7 +204,7 @@
             </div>
             <div id="navi">
                 <div>
-                    <ul style="margin:auto;width:50%;">
+                    <ul style="margin:auto;" ng-style='{"width":rentalNavAutoWidth}'>
                         <li class="prev"><a style="cursor:pointer" ng-click="prevPages()"><img
                                 src="../asset/image/back-arrow-circular-32.png"></a></li>
                         <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}">

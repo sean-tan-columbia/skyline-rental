@@ -23,7 +23,7 @@
     margin-top:7px;
     margin-left:10px;
     height:32px;
-    width:35%;
+    width:40%;
     float: left;
 }
 #header-search input {
@@ -59,7 +59,7 @@
     padding-top: 10px;
 }
 #header-menu ul {
-    margin-left: 30px;
+    margin-left: 20px;
 }
 #header-menu ul li {
     display: inline;
@@ -188,8 +188,9 @@
 #item-scroll div.item-container div.content-container div.upper-container {
     margin-left: 10px;
     margin-top: 15px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     width: 260px;
+    height: 40px;
     padding-bottom: 10px;
     border-bottom-color: #D3D3D3;
     border-bottom-style: solid;

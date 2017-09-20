@@ -1,6 +1,6 @@
-angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
+angular.module('skyline-detail', ['ngAnimate', 'ngRoute', 'ngMap'])
 
-.controller('imageSlideController', function ($scope, $http, $routeParams, config) {
+.controller('imageSlideController', function ($scope, $http, $routeParams, NgMap, config) {
     $http.get(config.serverUrl + "/api/public/rental/" + $routeParams.rentalId)
     .then(function(response) {
         console.log($routeParams.rentalId)
@@ -8,6 +8,8 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
         rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         // rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
         $scope.rental = rentalObj
+        $scope.latitude = $scope.rental.latitude.toFixed(2);
+        $scope.longitude = $scope.rental.longitude.toFixed(2);
         $scope.slides = rentalObj.imageIds
         $scope.rentalAge = getRentalAge(parseInt(rentalObj.lastUpdatedTimestamp));
         switch (rentalObj.bedroom) {
@@ -63,7 +65,6 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     };
     $scope.parseAddress = function () {
         var _address = $scope.rental.address.split(", ");
-        console.log(_address);
         $scope.short_address = "";
         if (_address.length > 0) {
             $scope.short_address = $scope.short_address + _address[0];
@@ -75,8 +76,15 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute'])
     $scope.parseDate = function () {
         var _date = new Date(parseInt($scope.rental.startDate));
         $scope.moveInDate = _date.getMonth() + "/" + _date.getDate() + "/" + _date.getFullYear();
-        console.log($scope.moveInDate);
     };
+    NgMap.getMap('ng-map-streetview').then(function(map) {
+        google.maps.event.trigger(map, 'resize');
+        map.setCenter({'lat':$scope.rental.latitude, 'lng':$scope.rental.longitude});
+    });
+    NgMap.getMap('ng-map-mapview').then(function(map) {
+        google.maps.event.trigger(map, 'resize');
+        map.setCenter({'lat':$scope.rental.latitude, 'lng':$scope.rental.longitude});
+    });
 })
 .animation('.slide-animation', function () {
     return {
