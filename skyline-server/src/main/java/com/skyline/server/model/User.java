@@ -19,9 +19,11 @@ public class User implements ClusterSerializable {
     private String id;
     private String name;
     private String email;
+    private String phone;
     private String wechatId;
     private Status status;
     private List<Rental> rentals;
+    private Date lastLoginTimestamp;
     private Date lastUpdatedTimestamp;
     private Date createdTimestamp;
 
@@ -31,8 +33,9 @@ public class User implements ClusterSerializable {
 
     public User(String id) {
         this.id = id;
-        this.createdTimestamp = new Timestamp(System.currentTimeMillis());
-        this.lastUpdatedTimestamp = createdTimestamp;
+        this.lastLoginTimestamp = new Timestamp(System.currentTimeMillis());
+        this.createdTimestamp = this.lastLoginTimestamp;
+        this.lastUpdatedTimestamp = this.lastLoginTimestamp;
         this.status = Status.ACTIVE;
         this.rentals = new ArrayList<>();
     }
@@ -51,7 +54,7 @@ public class User implements ClusterSerializable {
     }
 
     public String getEmail() {
-        return email;
+        return this.email;
     }
 
     public User setEmail(String email) {
@@ -59,8 +62,17 @@ public class User implements ClusterSerializable {
         return this;
     }
 
+    public String getPhone() {
+        return this.phone;
+    }
+
+    public User setPhone(String phone) {
+        this.phone = phone;
+        return this;
+    }
+
     public String getWechatId() {
-        return wechatId;
+        return this.wechatId;
     }
 
     public User setWechatId(String wechatId) {
@@ -74,6 +86,27 @@ public class User implements ClusterSerializable {
 
     public User setRentals(List<Rental> rentals) {
         this.rentals = rentals;
+        return this;
+    }
+
+    public Date getLastLoginTimestamp() {
+        return this.lastLoginTimestamp;
+    }
+
+    public String formatLastLoginTimestamp() {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.format(this.lastLoginTimestamp);
+    }
+
+    public User setLastLoginTimestamp(Date lastLoginTimestamp) {
+        this.lastLoginTimestamp = lastLoginTimestamp;
+        return this;
+    }
+
+    public User setLastLoginTimestamp(String lastLoginTimestamp) throws ParseException {
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        this.lastLoginTimestamp = format.parse(lastLoginTimestamp);
         return this;
     }
 
@@ -144,6 +177,7 @@ public class User implements ClusterSerializable {
 
     @Override
     public void writeToBuffer(Buffer buff) {
+        buff.appendLong(this.lastLoginTimestamp.getTime());
         buff.appendLong(this.createdTimestamp.getTime());
         buff.appendLong(this.lastUpdatedTimestamp.getTime());
         byte[] bytes;
@@ -152,6 +186,8 @@ public class User implements ClusterSerializable {
         bytes = this.name.getBytes(UTF8);
         buff.appendInt(bytes.length).appendBytes(bytes);
         bytes = this.email.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+        bytes = this.phone.getBytes(UTF8);
         buff.appendInt(bytes.length).appendBytes(bytes);
         bytes = this.wechatId.getBytes(UTF8);
         buff.appendInt(bytes.length).appendBytes(bytes);
@@ -165,6 +201,8 @@ public class User implements ClusterSerializable {
 
     @Override
     public int readFromBuffer(int pos, Buffer buff) {
+        this.lastLoginTimestamp = new Date(buff.getLong(pos));
+        pos += 8;
         this.createdTimestamp = new Date(buff.getLong(pos));
         pos += 8;
         this.lastUpdatedTimestamp = new Date(buff.getLong(pos));
@@ -186,6 +224,11 @@ public class User implements ClusterSerializable {
         bytes = buff.getBytes(pos, pos + len);
         pos += len;
         this.email = new String(bytes, UTF8);
+        len = buff.getInt(pos);
+        pos += 4;
+        bytes = buff.getBytes(pos, pos + len);
+        pos += len;
+        this.phone = new String(bytes, UTF8);
         len = buff.getInt(pos);
         pos += 4;
         bytes = buff.getBytes(pos, pos + len);

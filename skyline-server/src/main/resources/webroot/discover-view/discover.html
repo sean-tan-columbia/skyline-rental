@@ -29,7 +29,7 @@
                 <ul>
                     <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
                     <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
-                    <li><a href="#/post" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                    <li><a href="#/dashboard" style="color:white;opacity:0.9;">POST RENTAL</a></li>
                     <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
                 </ul>
             </div>
@@ -144,9 +144,9 @@
             <div class="layout layout-row layout-margin" style="margin-top:0px;">
                 <md-input-container md-no-float style="width:350px;margin-left:5px;height:20px;">
                     <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by">
-                        <md-option value="latest" ng-selected="true">ORDER BY DATE: LATEST</md-option>
-                        <md-option value="expensive">ORDER BY PRICE: HIGH TO LOW</md-option>
-                        <md-option value="cheap">ORDER BY PRICE: LOW TO HIGH</md-option>
+                        <md-option value="latest" ng-selected="true">SORTED ON DATE: LATEST</md-option>
+                        <md-option value="expensive">SORTED ON PRICE: HIGH TO LOW</md-option>
+                        <md-option value="cheap">SORTED ON PRICE: LOW TO HIGH</md-option>
                     </md-select>
                 </md-input-container>
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"

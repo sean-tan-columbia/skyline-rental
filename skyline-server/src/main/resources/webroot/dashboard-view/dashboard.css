@@ -11,11 +11,10 @@
 }
 /* Image adder */
 #dashboard .md-datepicker-input-container {
-    width: 75%;
+    width: 64%;
 }
 #dashboard .md-datepicker-input {
     font-size: 16px;
-    width: 100px;
 }
 #img-display-wrapper {
     width: 99%;

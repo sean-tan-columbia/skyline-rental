@@ -6,6 +6,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 
@@ -77,6 +78,37 @@ public class UserHandler {
             } else {
                 resultHandler.handle(Future.failedFuture(r.cause()));
             }
+        });
+    }
+
+    public void update(RoutingContext context) {
+        Session session = context.session();
+        if (session == null || session.get(SESSION_USERNAME) == null) {
+            context.response().setStatusCode(401).end();
+            return;
+        }
+        String posterId = session.get(SESSION_USERNAME);
+        JsonObject userInfo = context.getBodyAsJson();
+        if (userInfo == null) {
+            context.response().setStatusCode(400).end();
+            return;
+        }
+        User user = new User(posterId)
+                .setName(userInfo.getString("name"))
+                .setPhone(userInfo.getString("phone"))
+                .setWechatId(userInfo.getString("wechat"));
+        jdbcHandler.update(user, r1 -> {
+            if (r1.failed()) {
+                context.response().setStatusCode(500).end(r1.cause().getMessage());
+                return;
+            }
+            this.deleteUserCache(posterId, r2 -> {
+                if (r2.succeeded()) {
+                    context.response().setStatusCode(200).end();
+                } else {
+                    context.response().setStatusCode(500).end(r2.cause().getMessage());
+                }
+            });
         });
     }
 

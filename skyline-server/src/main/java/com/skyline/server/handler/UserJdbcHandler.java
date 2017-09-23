@@ -25,7 +25,7 @@ public class UserJdbcHandler {
         connect(jdbcClient);
     }
 
-    public void getRental(String posterId, Handler<AsyncResult<List<Rental>>> resultHandler) {
+    void getRental(String posterId, Handler<AsyncResult<List<Rental>>> resultHandler) {
         connection.queryWithParams(
                 "SELECT ID," +
                         "POSTER_ID," +
@@ -85,13 +85,15 @@ public class UserJdbcHandler {
         );
     }
 
-    public void getUser(String posterId, Handler<AsyncResult<User>> resultHandler) {
+    void getUser(String posterId, Handler<AsyncResult<User>> resultHandler) {
         connection.queryWithParams(
                 "SELECT ID," +
                         "NAME," +
-                        "EMAIL " +
+                        "EMAIL," +
+                        "PHONE," +
+                        "WECHAT_ID " +
                         "FROM eventbus.USERS " +
-                        "WHERE ID=?",
+                        "WHERE ID=? AND STATUS='ACTIVE'",
                 new JsonArray().add(posterId),
                 r2 -> {
                     if (r2.succeeded()) {
@@ -104,13 +106,32 @@ public class UserJdbcHandler {
                         User user = new User(posterId)
                                 .setName(row.getString(1))
                                 .setEmail(row.getString(2))
-                                .setWechatId("");
+                                .setPhone(row.getString(3))
+                                .setWechatId(row.getString(4));
                         resultHandler.handle(Future.succeededFuture(user));
                     } else {
                         resultHandler.handle(Future.failedFuture(r2.cause()));
                     }
                 }
         );
+    }
+
+    void update(User poster, Handler<AsyncResult<Long>> resultHandler) {
+        connection.updateWithParams("UPDATE eventbus.USERS SET " +
+                        "NAME=?," +
+                        "PHONE=?," +
+                        "WECHAT_ID=? " +
+                        "WHERE ID=? AND STATUS='ACTIVE'",
+                new JsonArray().add(poster.getName())
+                        .add(poster.getPhone())
+                        .add(poster.getWechatId())
+                        .add(poster.getId()), r -> {
+                    if (r.succeeded()) {
+                        resultHandler.handle(Future.succeededFuture());
+                    } else {
+                        resultHandler.handle(Future.failedFuture(r.cause()));
+                    }
+                });
     }
 
     private void connect(JDBCClient jdbcClient) {

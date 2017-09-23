@@ -10,7 +10,6 @@ import io.vertx.redis.RedisClient;
 public class UserRedisHandler {
 
     private final static String USER_KEY_BASE = "data.temp.user:";
-    private final static String RENTAL_KEY_BASE = "data.temp.user:";
     private final Long ttl = 600L;
     private final RedisClient client;
 

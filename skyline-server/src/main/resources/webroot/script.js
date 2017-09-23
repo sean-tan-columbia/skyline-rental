@@ -22,7 +22,7 @@ angular.module("skyline-rental", ['ngRoute',
         .when('/detail/:rentalId', {
             templateUrl: 'detail-view/detail.html',
         })
-        .when('/post', {
+        .when('/dashboard', {
             templateUrl: 'dashboard-view/dashboard.html',
             controller: 'userDashboardController',
             resolve: {

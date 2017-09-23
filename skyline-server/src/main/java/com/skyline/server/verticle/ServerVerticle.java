@@ -103,18 +103,18 @@ public class ServerVerticle extends AbstractVerticle {
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
 
-        router.route("/api/public/login").handler(sessionHandler);
-        router.route("/api/public/login").handler(userSessionHandler);
-        router.post("/api/public/login").handler(userAuthHandler::authenticate);
-        router.post("/api/public/signup").handler(userAuthHandler::signUp);
-        router.post("/api/public/reset").handler(userAuthHandler::reset);
-        router.get("/api/public/verify/:salt").handler(userAuthHandler::verify);
-        router.post("/api/public/password").handler(userAuthHandler::setPassword);
+        router.route("/api/public/user/login").handler(sessionHandler);
+        router.route("/api/public/user/login").handler(userSessionHandler);
+        router.post("/api/public/user/login").handler(userAuthHandler::authenticate);
+        router.post("/api/public/user/register").handler(userAuthHandler::register);
+        router.post("/api/public/user/reset").handler(userAuthHandler::reset);
+        router.get("/api/public/user/verify/:salt").handler(userAuthHandler::verify);
+        router.post("/api/public/user/password").handler(userAuthHandler::setPassword);
 
-        router.post("/api/public/search").handler(rentalHandler::search);
-        router.post("/api/public/location").handler(rentalHandler::searchLocation);
+        router.post("/api/public/rental/search").handler(rentalHandler::search);
+        router.post("/api/public/rental/location").handler(rentalHandler::searchLocation);
         router.get("/api/public/rental/:rentalId").handler(rentalHandler::get);
-        router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
+        // router.get("/api/public/discover/:sorter/:order").handler(rentalHandler::sort);
 
         router.route("/api/private/*").handler(sessionHandler);
         router.route("/api/private/*").handler(userSessionHandler);
@@ -122,6 +122,7 @@ public class ServerVerticle extends AbstractVerticle {
         router.put("/api/private/rental/:rentalId").handler(rentalHandler::update);
         router.delete("/api/private/rental/:rentalId").handler(rentalHandler::delete);
         router.get("/api/private/user").handler(userHandler::get);
+        router.put("/api/private/user").handler(userHandler::update);
 
         router.route("/*").handler(StaticHandler.create().setCachingEnabled(false));
 

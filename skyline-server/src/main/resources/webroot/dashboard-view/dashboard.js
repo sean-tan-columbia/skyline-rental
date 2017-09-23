@@ -26,8 +26,15 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
 .controller('userDashboardController', function ($scope, $route, $http, config, $q, $window, userInfo, dataSharedService) {
     $scope.rentals = [];
     var user = userInfo.data;
+    console.log(user);
     $scope.id = user.id;
+    $scope.name = user.name;
+    $scope.phone = user.phone
     $scope.email = user.email;
+    $scope.wechat = user.wechatId;
+    var originalUserName = user.name;
+    var originalPhone = user.phone;
+    var originalWechatId = user.wechatId;
     for (i = 0; i < user.rentals.length; i++) {
         rentalObj = user.rentals[i];
         address_parts = rentalObj.address.split(",")
@@ -45,7 +52,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 $scope.alertSuccessInfo = 'Rental at ' + $scope.rentals[rentalIndex].displayAddress +' has been deleted.';
                 $scope.alertSuccessShow = true;
 
-                targetIndex = -1;
+                var targetIndex = -1;
                 for (i = 0; i < $scope.rentals.length; i++) {
                     if ($scope.rentals[i].id == rentalId) {
                         targetIndex = i;
@@ -71,7 +78,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
         dataSharedService.clearRental();
     };
     $scope.$on('dashRentalAdd', function(event, data) {
-        address_parts = data.address.split(",")
+        address_parts = data.address.split(",");
         displayAddress = address_parts[0] + "," + address_parts[1];
         displayCreatedTimestamp = parseDate((new Date()).getTime());
         $scope.rentals.unshift({'id':data.id,'displayAddress':displayAddress,'displayCreatedTimestamp':displayCreatedTimestamp});
@@ -80,6 +87,20 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
         $window.scrollTo(0, 0);
     });
     $scope.$on('dashRentalEdit', function(event, data) {
+        address_parts = data.address.split(",");
+        displayAddress = address_parts[0] + "," + address_parts[1];
+        displayCreatedTimestamp = parseDate((new Date()).getTime());
+        var targetIndex = -1;
+        for (i = 0; i < $scope.rentals.length; i++) {
+            if ($scope.rentals[i].id == data.id) {
+                targetIndex = i;
+                break;
+            }
+        }
+        if (targetIndex != -1) {
+            $scope.rentals.splice(targetIndex, 1);
+        }
+        $scope.rentals.unshift({'id':data.id,'displayAddress':displayAddress,'displayCreatedTimestamp':displayCreatedTimestamp});
         $scope.alertSuccessInfo = 'Rental at ' + data.address +' has been updated.';
         $scope.alertSuccessShow = true;
         $window.scrollTo(0, 0);
@@ -89,6 +110,37 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
         $scope.alertFailureShow = true;
         $window.scrollTo(0, 0);
     });
+    $scope.updateUser = function() {
+        if ($scope.name == undefined || $scope.name == "") {
+            $scope.alertFailureInfo = "User name cannot be null!";
+            $scope.alertFailureShow = true;
+            $window.scrollTo(0, 0);
+            return;
+        }
+        if ($scope.wechat == undefined) {
+            $scope.wechat = "";
+        }
+        if ($scope.phone == undefined) {
+            $scope.phone = "";
+        }
+        if ($scope.name == originalUserName && $scope.wechat == originalWechatId && $scope.phone == originalPhone) {
+            return;
+        }
+        data = {id:$scope.id, name:$scope.name, email:$scope.email, phone:$scope.phone, wechat:$scope.wechat};
+        console.log(data);
+        $http({ method: 'PUT',
+                url: config.serverUrl + '/api/private/user',
+                data: data})
+        .then(function successCallback(response) {
+            $scope.alertSuccessInfo = 'User info has been updated.';
+            $scope.alertSuccessShow = true;
+            $window.scrollTo(0, 0);
+        }, function errorCallback(response) {
+            $scope.alertFailureInfo = "Failed to update user info. Please retry later.";
+            $scope.alertFailureShow = true;
+            $window.scrollTo(0, 0);
+        });
+    }
 })
 
 .directive("imagereader", ['$http', '$q', 'NgMap', '$window', 'config', '$routeParams', '$route', 'dataSharedService',
@@ -133,7 +185,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 $http.get("https://ipinfo.io")
                 .then(function(response) {
                     ipinfo = response.data;
-                    scope.rentalId = posterHashids.encode(ip2int(ipinfo.ip), Date.now());
+                    scope.rentalId = 'R' + posterHashids.encode(ip2int(ipinfo.ip), Date.now());
                     console.log(scope.rentalId);
                 });
                 scope.existedImages = new Set();
@@ -165,6 +217,10 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 scope.address = rentalObj.address;
                 scope.lat = parseFloat(rentalObj.latitude);
                 scope.lng = parseFloat(rentalObj.longitude);
+
+                // scope.map.setCenter({'lat':scope.lat, 'lng':scope.lng});
+                // scope.markerShown = true;
+
                 scope.inputMoveInDate = new Date(parseInt(rentalObj.startDate));
                 scope.description = rentalObj.description;
                 if (rentalObj.endDate != undefined) {
@@ -334,6 +390,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 scope.lng = scope.place.geometry.location.lng();
                 console.log(scope.place.formatted_address);
                 scope.map.setCenter(scope.place.geometry.location);
+                scope.markerShown = true;
             }
 
             scope.init();

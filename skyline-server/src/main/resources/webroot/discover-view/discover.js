@@ -247,7 +247,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     };
     $scope.search = function() {
         $http({ method: 'POST',
-                url: config.serverUrl + '/api/public/search',
+                url: config.serverUrl + '/api/public/rental/search',
                 data: $scope.searchParams
         }).then(function(r) {
             // console.log(r.data);
@@ -264,7 +264,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         mapSearchParams['lat_min'] = (parseFloat(rentalObj.latitude) - pos_delta).toString();
         mapSearchParams['lat_max'] = (parseFloat(rentalObj.latitude) + pos_delta).toString();
         $http({ method: 'POST',
-                url: config.serverUrl + '/api/public/location',
+                url: config.serverUrl + '/api/public/rental/location',
                 data: mapSearchParams
         }).then(function(r) {
             // console.log(r.data);

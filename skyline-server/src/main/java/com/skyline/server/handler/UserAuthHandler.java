@@ -43,7 +43,7 @@ public class UserAuthHandler {
                     return;
                 }
                 Session session = context.session();
-                session.put("username", credentials.getString("username"));
+                session.put("username", credentials.getString("username")); // username == id here.
                 context.setUser(login.result());
                 context.response()
                         .putHeader("content-type", "application/json")
@@ -140,7 +140,7 @@ public class UserAuthHandler {
         });
     }
 
-    public void signUp(RoutingContext context) {
+    public void register(RoutingContext context) {
         JsonObject credentials = context.getBodyAsJson();
         if (credentials == null) {
             context.response().setStatusCode(400).end();
@@ -149,6 +149,7 @@ public class UserAuthHandler {
         String id = credentials.getString("id");
         String name = credentials.getString("name");
         String email = credentials.getString("email");
+        String phone = credentials.getString("phone", "");
         String wechat = credentials.getString("wechat", "");
         jdbcHandler.exists(email, r1 -> {
             if (r1.failed()) {
@@ -161,7 +162,7 @@ public class UserAuthHandler {
                 return;
             }
             String salt = authProvider.generateSalt();
-            User user = new User(id).setName(name).setEmail(email).setWechatId(wechat);
+            User user = new User(id).setName(name).setEmail(email).setPhone(phone).setWechatId(wechat);
             redisHandler.put(salt, user, r2 -> {
                 if (r2.succeeded()) {
                     context.response().setStatusCode(201).end();

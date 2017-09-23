@@ -45,7 +45,7 @@ public class RentalJdbcHandler {
                         "LAST_UPDATED_TIMESTAMP," +
                         "CREATED_TIMESTAMP " +
                         "FROM eventbus.RENTALS " +
-                        "WHERE ID=?",
+                        "WHERE ID=? AND STATUS='ACTIVE'",
                 new JsonArray().add(rentalId),
                 r2 -> {
                     if (r2.succeeded()) {
@@ -154,7 +154,7 @@ public class RentalJdbcHandler {
                         "IMAGE_ID=?," +
                         "STATUS=?," +
                         "LAST_UPDATED_TIMESTAMP=? " +
-                        "WHERE ID=?",
+                        "WHERE ID=? AND STATUS='ACTIVE'",
                 new JsonArray()
                         .add(rental.getAddress())
                         .add(rental.getRentalType())
@@ -187,7 +187,7 @@ public class RentalJdbcHandler {
                 "UPDATE eventbus.RENTALS SET " +
                         "STATUS='INACTIVE'," +
                         "LAST_UPDATED_TIMESTAMP=now()::timestamp(0) " +
-                        "WHERE ID=?",
+                        "WHERE ID=? AND STATUS='ACTIVE'",
                 new JsonArray().add(rentalId),
                 r2 -> {
                     if (r2.succeeded()) {
