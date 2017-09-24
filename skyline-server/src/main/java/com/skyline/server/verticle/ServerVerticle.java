@@ -20,6 +20,8 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
 
+import java.util.Properties;
+
 /**
  * Created by jtan on 6/2/17.
  */
@@ -41,7 +43,10 @@ public class ServerVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> future) throws Exception {
 
-        Config config = Config.getInstance("dev");
+        Properties properties = System.getProperties();
+        LOG.info(properties.getProperty("env"));
+
+        Config config = Config.getInstance(properties.getProperty("env"));
         this.redisClient = RedisClient.create(vertx, new RedisOptions()
                 .setHost(config.getRedisHost())
                 .setAuth(config.getRedisAuth()));
