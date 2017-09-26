@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:style="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Journey: Start Your Journey with Your New Home</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular-touch.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.10.3/TweenMax.min.js"></script>
+</head>
+<body ng-app="skyline-discover">
+<div ng-controller="rentalDiscoverController">
+    <div id="header">
+        <div id="header-top">
+            <div id="header-icon" style="margin-top:5px;">
+                <label style="font-size:34px;font-family:Trebuchet MS">journey</label>
+            </div>
+            <div id="header-search">
+                <input type="text"
+                       ng-model="targetAddress"
+                       places-auto-complete
+                       component-restrictions="{country:'us'}"
+                       types="['establishment']"
+                       on-place-changed="placeChanged()">
+            </div>
+            <div id="header-menu">
+                <ul>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
+                    <li><a href="#/dashboard" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                    <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
+                </ul>
+            </div>
+        </div>
+        <div id="header-down">
+            <div class="layout layout-row layout-margin" style="margin-top:0px;">
+                <md-input-container md-no-float>
+                    <md-datepicker ng-model="inputMoveInDate" md-placeholder="Move-in"></md-datepicker>
+                </md-input-container>
+                <md-input-container md-no-float style="width:120px;margin-left:10px;">
+                    <input type="number" step="10" ng-model="inputPriceMin"
+                           min="0" max="10000" placeholder="$ Min"/>
+                </md-input-container>
+                <md-input-container md-no-float style="width:120px;margin-left:0px;">
+                    <input type="number" step="10" ng-model="inputPriceMax"
+                           min="0" max="10000" placeholder="$ Max"/>
+                </md-input-container>
+                <md-input-container md-no-float style="width:95px;margin-left:0px;">
+                    <md-select ng-model="selectedQuantifier" placeholder="Per">
+                        <md-option value="0" ng-selected="true">Month</md-option>
+                        <md-option value="1">Day</md-option>
+                    </md-select>
+                </md-input-container>
+
+                <md-input-container md-no-float style="width:10%;margin-left:15px;">
+                    <md-select ng-model="selectedBedrooms"
+                               multiple
+                               placeholder="Bedrooms">
+                        <md-optgroup label="bedrooms">
+                            <md-option ng-value="''+$index" ng-repeat="bedroom in bedrooms">{{bedroom}}</md-option>
+                        </md-optgroup>
+                    </md-select>
+                </md-input-container>
+
+                <md-input-container md-no-float style="width:10%;margin-left:15px;">
+                    <md-select ng-model="selectedBathrooms"
+                               multiple
+                               placeholder="Bathrooms">
+                        <md-optgroup label="bathrooms">
+                            <md-option ng-value="''+$index" ng-repeat="bathroom in bathrooms">{{bathroom}}</md-option>
+                        </md-optgroup>
+                    </md-select>
+                </md-input-container>
+
+                <div style="margin-left:34px;">
+                    <input type="submit" id="submit-search" value="SEARCH" ng-click="submitSearch()"/>
+                    <input type="submit" id="submit-clear" value="CLEAR" ng-click="clearSearch()"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="main">
+        <div id="main-left" class="floating">
+            <div id="map-container">
+                <md-button class="md-raised"
+                           style="height:10px;position:absolute;z-index:1;margin-top:10px;left:calc(100vw - 675px);"
+                           ng-click="returnToPrevMap()">BACK
+                </md-button>
+                <!--<input type="image"-->
+                <!--src="../asset/image/map-return-32.png"-->
+                <!--style="position:absolute;z-index:1;margin-left:63.5%;margin-top:10px;width:28px;height:28px;box-shadow: 0px 10px 40px -10px rgba(0,0,0,0.75);border-radius:2px;">-->
+                <ng-map id="ng-map"
+                        style="height:100%"
+                        center="40.785,-73.968"
+                        zoom="12"
+                        default-style="false"
+                        on-click="closeAllCustomMarker()"
+                        on-tilesloaded="searchMap()"
+                        street-view-control="false">
+                    <marker ng-repeat="r in rentals"
+                            position="{{r.latitude}},{{r.longitude}}"
+                            on-click="searchLoc(rentals[$index])"
+                            icon="{{markerIcons[$index]}}">
+                    </marker>
+                    <custom-marker id="{{$index}}"
+                                   ng-repeat="r in rentals"
+                                   position="{{r.latitude}},{{r.longitude}}"
+                                   on-click="closeCustomMarker($index)"
+                                   ng-if="customMarkerShown[$index]">
+                        <div class="custom-marker-container">
+                            <img ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{r.imageIds[0]}}">
+                        </div>
+                    </custom-marker>
+                </ng-map>
+            </div>
+        </div>
+        <div id="main-right" class="floating">
+            <!--<div style="width:100%;margin-left:10px;margin-top:8px;margin-bottom:8px;">-->
+            <!--<div style="display:inline;float:left;">-->
+            <!--<input type="submit"-->
+            <!--id="map-back-button"-->
+            <!--ng-click="returnToPrevMap()"-->
+            <!--ng-disabled="(mapParamStack.length<=1)&&(!isSingleLoc)"-->
+            <!--value="Back to Prev Map View" style="width:auto">-->
+            <!--</div>-->
+            <!--<select ng-model="search.selectedSorter" name="sorter" ng-change="sort()"-->
+            <!--ng-init="search.selectedSorter='latest'"-->
+            <!--style="border:1px solid #ccc;font-size:15px;height:30px;width:180px;margin-left:0px;outline:None;background-color:white">-->
+            <!--<option value="latest" ng-selected="true">Latest</option>-->
+            <!--<option value="expensive">Expensive</option>-->
+            <!--<option value="cheap">Cheap</option>-->
+            <!--</select>-->
+
+            <!--<md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"-->
+            <!--class="md-primary"-->
+            <!--style="margin-top:0px;margin-bottom:0px;margin-left:10px;"-->
+            <!--ng-change="search()">-->
+            <!--Favorites-->
+            <!--</md-checkbox>-->
+            <!--</div>-->
+
+            <div class="layout layout-row layout-margin" style="margin-top:0px;">
+                <md-input-container md-no-float style="width:350px;margin-left:5px;height:20px;">
+                    <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by">
+                        <md-option value="latest" ng-selected="true">SORTED ON DATE: LATEST</md-option>
+                        <md-option value="expensive">SORTED ON PRICE: HIGH TO LOW</md-option>
+                        <md-option value="cheap">SORTED ON PRICE: LOW TO HIGH</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
+                             class="md-primary"
+                             style="margin-top:16px;;margin-bottom:2px;margin-left:10px;"
+                             ng-click="search()">
+                    Show Favorites
+                </md-checkbox>
+            </div>
+
+            <div id="item-scroll">
+                <div class="item-container"
+                     ng-repeat="rental in rentals"
+                     ng-init="rental_index=$index"
+                     ng-mouseenter="toggleMarkerColor($index, 'red')"
+                     ng-mouseleave="toggleMarkerColor($index, 'pink')">
+                    <div class="img-container">
+                        <a target="_self" ng-href="#/detail/{{rental.id}}">
+                            <img ng-repeat="slide in rental.imageIds"
+                                 ng-init="slide_index=$index"
+                                 ng-hide="!isCurrentSlideIndex(rental_index, slide_index)"
+                                 ng-src="{{googleCloudStorageBaseUrl}}/{{googleCloudStorageBucket}}/{{slide}}"
+                                 style="width:260px;">
+                        </a>
+                        <input class="arrow-prev" type="image" src="../asset/image/arrow_prev_white-16.png"
+                               ng-click="prevSlide(rental_index)">
+                        <input class="arrow-next" type="image" src="../asset/image/arrow_next_white-16.png"
+                               ng-click="nextSlide(rental_index)">
+                    </div>
+                    <div class="content-container">
+                        <div class="upper-container">
+                            <div class="text-price">${{rental.price}}</div>
+                            <div class="text-quantifier">/ {{rental.quantifier}}</div>
+                            <div class="button-selections">
+                                <a class="button-like" ng-click="toggleLikeUnlike($index)">
+                                    <img ng-src="{{rental.likedImg}}"
+                                         style="height:55%;width:55%;margin-top:3px;margin-left:-5px;">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="feature-container">
+                            <div class="feature-content">
+                                <div class="feature-number">{{rental.bedroom}},</div>
+                            </div>
+                            <div class="feature-content">
+                                <div class="feature-number">{{rental.bathroom}}</div>
+                            </div>
+                        </div>
+                        <div class="date-container">
+                            Move-in: {{rental.moveInDate}}
+                        </div>
+                        <div class="time-container">{{rental.age}} ago</div>
+                    </div>
+                </div>
+            </div>
+            <div id="navi">
+                <div>
+                    <ul style="margin:auto;" ng-style='{"width":rentalNavAutoWidth}'>
+                        <li class="prev"><a style="cursor:pointer" ng-click="prevPages()"><img
+                                src="../asset/image/back-arrow-circular-32.png"></a></li>
+                        <li ng-repeat="page in pageList" ng-class="{active: isActivePage(page)}">
+                            <a class="page" ng-click="selectPage(page)">{{page}}</a>
+                        </li>
+                        <li class="next"><a style="cursor:pointer" ng-click="nextPages()"><img
+                                src="../asset/image/forward-arrow-circular-32.png"></a></li>
+                    </ul>
+                </div>
+                <div style="margin-top:5px;display:block;">
+                    <p style="display:inline;margin-left:40%;font-size:16px;color:#4169E1;">
+                        {{rentalStartIndex}} - {{rentalEndIndex}} of {{totalIds}} Rentals
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

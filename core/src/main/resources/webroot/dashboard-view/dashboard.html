@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Journey: Start Your Journey with Your New Home</title>
+</head>
+<body ng-app="skyline-post">
+<div id="header">
+    <div id="header-top">
+        <div id="header-icon" style="margin-top:5px;">
+            <label style="font-size:34px;font-family:Trebuchet MS">journey</label>
+        </div>
+        <div id="header-menu">
+            <ul>
+                <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
+                <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
+                <li><a href="#/dashboard" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div id="alerts">
+    <div id="alert_success" ng-show="alertSuccessShow" ng-init="alertSuccessShow=false"
+         style="margin-top:20px;margin-left:8%;width:75%;padding:20px;background-color:white;border-width:1px;border-color:green;border-style:solid;color:white;">
+        <span style="color:green;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+              ng-click="alertSuccessShow=false">&times;</span>
+        <strong style="color:green">Success!</strong>
+        <p style="color:green;display:inline;">{{alertSuccessInfo}}</p>
+    </div>
+    <div id="alert_failure" ng-show="alertFailureShow" ng-init="alertFailureShow=false"
+         style="margin-top:20px;margin-left:8%;width:75%;padding:20px;background-color:white;border-width:1px;border-color:#f44336;border-style:solid;color:white;">
+        <span style="color:#f44336;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+              ng-click="alertFailureShow=false">&times;</span>
+        <strong style="color:#f44336">Warning!</strong>
+        <p style="color:#f44336;display:inline;">{{alertFailureInfo}}</p>
+    </div>
+</div>
+<div id="dashboard" style="width:100%;float:left;margin-top:0px;padding-top:25px;background-color:#F5F5F5">
+    <div id="dashboard-left" style="float:left;width:23%;">
+        <div id="dashboard-me"
+             style="width:70%;height:535px;float:right;border-radius:2px;margin-right:15px;background-color:white;box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);">
+            <div class="dashboard-me-info"
+                 style="height:200px;border-bottom-width:1px;border-bottom-color:#D3D3D3;border-bottom-style:solid;">
+                <div class="dashboard-me-photo" style="margin-top:15px;text-align:center;">
+                    <img src="../asset/image/user-icon-128.png">
+                </div>
+                <p class="dashboard-me-email" style="font-size:16px;text-align:center;">
+                    {{email}}
+                </p>
+            </div>
+            <div class="dashboard-me-contact" style="padding-top:10px;padding-left:0px;">
+                <div style="text-align:center;width:90%;margin:auto;">
+                    <img src="../asset/image/username-32.png" style="margin-top:10px;">
+                    <md-input-container md-no-float class="md-block" style="margin-top:-3px;">
+                        <input ng-model="name" style="text-align:center;" aria-label="name">
+                    </md-input-container>
+                </div>
+                <div style="text-align:center;width:90%;margin:auto;margin-top:-10px;">
+                    <img src="../asset/image/phone-32.png" style="width:28px;height:28px;margin-top:0px;">
+                    <md-input-container md-no-float class="md-block" style="margin-top:-3px;">
+                        <input ng-model="phone" style="text-align:center;" aria-label="phone">
+                    </md-input-container>
+                </div>
+                <div style="text-align:center;width:90%;margin:auto;margin-top:-10px;">
+                    <img src="../asset/image/wechat-32.png" style="width:28px;height:28px;margin-top:0px;">
+                    <md-input-container md-no-float class="md-block" style="margin-top:-3px;">
+                        <input ng-model="wechat" style="text-align:center;" aria-label="wechat">
+                    </md-input-container>
+                </div>
+            </div>
+        </div>
+        <!--<md-button class="md-raised" style="width:70%;padding-top:5px;padding-bottom:5px;margin-top:20px;margin-right:15px;float:right;" ng-click="clearRental()">update</md-button>-->
+        <md-button class="md-raised"
+                   style="width:70%;padding-top:5px;padding-bottom:5px;margin-top:20px;margin-right:15px;float:right;"
+                   ng-click="updateUser()">update
+        </md-button>
+
+    </div>
+    <div id="dashboard-middle" style="float:left;width:36%;margin-left:0.3%;height:1600px;">
+        <imagereader posterId="{{posterId}}"></imagereader>
+    </div>
+    <div id="dashboard-right"
+         style="float:left;width:450px;margin-left:1.5%;padding-bottom:15px;border-width:1px;border-radius:2px;background-color:white;box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);">
+        <div style="border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;padding: 15px 10px 15px 10px;font-size:17px;font-family:Arial">
+            <input style="background:url(../asset/image/search_glass_20.png) no-repeat scroll 7px 7px;margin-left:10px;height:32px;width:60%;padding-left:36px;outline:none;border-radius:2px;border-style:solid;border-width:1px;border-color:#D3D3D3;"
+                   ng-model="myPostSearch">
+            <md-button class="md-raised md-warn" style="margin-top:-2px;margin-right:15px;float:right;width:10px;"
+                       ng-click="clearRental()">ADD
+            </md-button>
+        </div>
+        <div id="my-post-scroll" style="height:420px;overflow-y:scroll;overflow-x:hidden;">
+            <div id="dashboard-me-post">
+                <div class="my-post-container" style="margin-left:15px;margin-right:5px;">
+                    <table>
+                        <tr ng-repeat="rental in rentals | filter:myPostSearch">
+                            <td width="270px;"><a href="#/detail/{{rental.id}}" target="_blank"
+                                                  style="text-decoration:none;">{{rental.displayAddress}}</a></td>
+                            <td width="100px;">{{rental.displayCreatedTimestamp}}</td>
+                            <!--<td width="20px;"><a href="#/edit/{{rental.id}}"><img src="../asset/image/edit-16.png"></a>-->
+                            <td width="20px;"><a href ng-click="editRental($index)"><img
+                                    src="../asset/image/edit-16.png"></a>
+                            </td>
+                            <td width="20px;"><a href ng-click="deleteRental($index)"><img
+                                    src="../asset/image/delete-16.png"></a></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
