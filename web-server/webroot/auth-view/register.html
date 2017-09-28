@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Journey: Start Your Journey with Your New Home</title>
+</head>
+<body ng-app="skyline-auth">
+<div style="height:100vh;background-color:white" ng-controller="authController">
+    <div id="header">
+        <div id="header-top">
+            <div id="header-icon" style="margin-top:5px;">
+                <label style="font-size:34px;font-family:Trebuchet MS">journey</label>
+            </div>
+            <div id="header-menu">
+                <ul>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">HOME</a></li>
+                    <li><a href="#/discover" style="color:white;opacity:0.9">DISCOVER</a></li>
+                    <li><a href="#/dashboard" style="color:white;opacity:0.9;">POST RENTAL</a></li>
+                    <li><a href="#/register" style="color:white;opacity:0.9">SIGN UP</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="alerts">
+        <div id="alert_success" ng-show="signUpSuccessShow" ng-init="signUpSuccessShow=false"
+             style="margin:auto;margin-top:30px;width:40%;padding:20px;background-color:white;border-width:1px;border-color:green;border-style:solid;color:white;">
+            <span style="color:green;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+                  ng-click="signUpSuccessShow=false">&times;</span>
+            <strong style="color:green">Success!</strong>
+            <p style="color:green;display:inline;">{{signUpSuccessInfo}}</p>
+        </div>
+        <div id="alert_failure" ng-show="signUpFailureShow" ng-init="signUpFailureShow=false"
+             style="margin:auto;margin-top:30px;width:40%;padding:20px;background-color:white;border-width:1px;border-color:#f44336;border-style:solid;color:white;">
+            <span style="color:#f44336;font-weight:bold;float:right;font-size:24px;line-height:20px;cursor:pointer;"
+                  ng-click="signUpFailureShow=false">&times;</span>
+            <strong style="color:#f44336">Warning!</strong>
+            <p style="color:#f44336;display:inline;">{{signUpFailureInfo}}</p>
+        </div>
+    </div>
+    <div id="body">
+        <form id="auth-form" style="height:410px;">
+            <div style="width:100%;height:35px;border-bottom-width:1px;border-bottom-style:solid;border-bottom-color:#D3D3D3;font-size:21px;font-weight:bold;">
+                <p style="display:inline;padding-left:25px;">Sign up</p>
+            </div>
+            <div style="width:100%;text-align:center;margin-top:35px;">
+                <input required type="text" class="text" id="email" class="span2" placeholder="Email"
+                       ng-model="signUpEmail"/>
+                <input required type="text" class="text" id="name" class="span2" placeholder="Nickname"
+                       style="margin-top:20px;" ng-model="signUpName"/>
+                <input type="text" class="text" id="phone" class="span2" placeholder="Phone (Optional)"
+                       style="margin-top:20px;" ng-model="signUpPhone"/>
+                <input type="text" class="text" id="wechat" class="span2" placeholder="Wechat (Optional)"
+                       style="margin-top:20px;" ng-model="signUpWechat"/>
+                <input type="submit" id="auth-submit" value="Sign up" ng-disabled="signUpDisable"
+                       ng-init="signUpDisable=false"
+                       style="margin-top:30px;" ng-click="sign_up()"/>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
