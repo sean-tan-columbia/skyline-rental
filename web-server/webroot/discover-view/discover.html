@@ -54,7 +54,7 @@
                     </md-select>
                 </md-input-container>
 
-                <md-input-container md-no-float style="width:10%;margin-left:15px;">
+                <md-input-container md-no-float style="width:12%;margin-left:10px;">
                     <md-select ng-model="selectedBedrooms"
                                multiple
                                placeholder="Bedrooms">
@@ -64,7 +64,7 @@
                     </md-select>
                 </md-input-container>
 
-                <md-input-container md-no-float style="width:10%;margin-left:15px;">
+                <md-input-container md-no-float style="width:12%;margin-left:0px;">
                     <md-select ng-model="selectedBathrooms"
                                multiple
                                placeholder="Bathrooms">
@@ -119,10 +119,10 @@
         <div id="main-right" class="floating">
             <div class="layout layout-row layout-margin" style="margin-top:0px;">
                 <md-input-container md-no-float style="width:350px;margin-left:5px;height:20px;">
-                    <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by" style="font-size:18px;">
-                        <md-option value="latest" ng-selected="true">Sorted On Date: Latest</md-option>
-                        <md-option value="expensive">Sorted On Price: High to Low</md-option>
-                        <md-option value="cheap">Sorted On Price: Low to High</md-option>
+                    <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by" style="font-size:16px;color:#696969;font-weight:500;">
+                        <md-option value="latest" ng-selected="true">SORTED BY DATE: MOST RECENT</md-option>
+                        <md-option value="expensive">SORTED BY PRICE: HIGH TO LOW</md-option>
+                        <md-option value="cheap">SORTED BY PRICE: LOW TO HIGH</md-option>
                     </md-select>
                 </md-input-container>
                 <md-checkbox ng-model="search.showLiked" aria-label="only favorite" ng-init="search.showLiked=false"
