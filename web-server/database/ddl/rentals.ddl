@@ -21,3 +21,5 @@ CREATE TABLE eventbus.RENTALS (
 );
 
 CREATE INDEX idx_rentals_posterId ON eventbus.RENTALS (poster_id);
+
+ALTER TABLE eventbus.RENTALS ADD CONSTRAINT fnk_rentals_users_posterId FOREIGN KEY (poster_id) REFERENCES eventbus.USERS ON DELETE CASCADE;

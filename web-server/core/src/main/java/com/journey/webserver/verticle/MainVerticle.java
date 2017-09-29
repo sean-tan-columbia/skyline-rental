@@ -27,6 +27,7 @@ public class MainVerticle extends AbstractVerticle {
     }
 
     public static void main(String[] args) {
+        System.setProperty("com.mchange.v2.c3p0.cfg.xml", "config/c3p0-config.xml");
         Runner.run(MainVerticle.class);
     }
 

@@ -48,8 +48,7 @@ public class ServerVerticle extends AbstractVerticle {
                 .put("url", "jdbc:postgresql://" + config.getPostgresHost() + "/" + config.getPostgresName())
                 .put("user", config.getPostgresUser())
                 .put("password", config.getPostgresAuth())
-                .put("driver_class", config.getPostgresDriver())
-                .put("socketTimeout", 5));
+                .put("driver_class", config.getPostgresDriver()));
         LOG.info("Redis Host: " + config.getRedisHost());
         LOG.info("Postgres Host: " + config.getPostgresHost());
 

@@ -1,0 +1,14 @@
+<c3p0-config>
+    <default-config>
+        <property name="idleConnectionTestPeriod">30</property>
+        <property name="maxIdleTime">60</property>
+        <property name="maxConnectionAge">300</property>
+        <property name="preferredTestQuery">SELECT 1 FROM eventbus.RENTALS</property>
+        <property name="testConnectionOnCheckin">true</property>
+        <!--<property name="automaticTestTable">con_test</property>-->
+        <!--<property name="maxPoolSize">100</property>-->
+        <!--<property name="minPoolSize">10</property>-->
+        <!--<property name="maxStatements">200</property>-->
+        <!--<property name="initialPoolSize">10</property>-->
+    </default-config>
+</c3p0-config>
