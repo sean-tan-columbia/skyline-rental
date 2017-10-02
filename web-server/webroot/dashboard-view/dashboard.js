@@ -202,6 +202,7 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 scope.selectedBathroom = undefined;
                 scope.selectedQuantifier = "0";
                 scope.images = [];
+                scope.markerShown = false;
             }
             scope.$on('dashRentalClear', function() {
                 scope.init();
@@ -218,8 +219,8 @@ angular.module('skyline-dashboard', ['ngRoute', 'ngMap'])
                 scope.lat = parseFloat(rentalObj.latitude);
                 scope.lng = parseFloat(rentalObj.longitude);
 
-                // scope.map.setCenter({'lat':scope.lat, 'lng':scope.lng});
-                // scope.markerShown = true;
+                scope.map.setCenter({'lat':scope.lat, 'lng':scope.lng});
+                scope.markerShown = true;
 
                 scope.inputMoveInDate = new Date(parseInt(rentalObj.startDate));
                 scope.description = rentalObj.description;

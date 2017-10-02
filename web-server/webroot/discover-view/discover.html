@@ -118,7 +118,7 @@
         </div>
         <div id="main-right" class="floating">
             <div class="layout layout-row layout-margin" style="margin-top:0px;">
-                <md-input-container md-no-float style="width:350px;margin-left:5px;height:20px;">
+                <md-input-container md-no-float style="width:325px;margin-left:5px;height:20px;">
                     <md-select ng-model="search.selectedSorter" ng-change="sort()" aria-label="sort by" style="font-size:16px;color:#696969;font-weight:500;">
                         <md-option value="latest" ng-selected="true">SORTED BY DATE: MOST RECENT</md-option>
                         <md-option value="expensive">SORTED BY PRICE: HIGH TO LOW</md-option>
@@ -129,7 +129,7 @@
                              class="md-primary"
                              style="margin-top:16px;;margin-bottom:2px;margin-left:10px;"
                              ng-click="search()">
-                    Show Favorites
+                    <p style="display:inline;font-size:16px;color:#696969;font-weight:500;">ONLY FAVORITES</p>
                 </md-checkbox>
             </div>
 

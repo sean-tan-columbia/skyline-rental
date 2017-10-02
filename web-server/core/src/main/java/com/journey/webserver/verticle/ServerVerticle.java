@@ -5,10 +5,12 @@ import com.journey.webserver.handler.*;
 import com.journey.webserver.sstore.RedisSessionStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.auth.jdbc.JDBCAuth;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.web.Router;
@@ -71,21 +73,28 @@ public class ServerVerticle extends AbstractVerticle {
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
 
         Router router = createRouter();
-        // vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(
-        //     new JksOptions().setPath("server-keystore.jks").setPassword("skyline")
-        // )).requestHandler(router::accept).listen(8443);
+        /*
+        vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(new JksOptions()
+                .setPath("/absolute_path/keystore.jks")
+                .setPassword("")
+        )).requestHandler(router::accept).listen(8443, result -> {
+            if (result.succeeded()) {
+                LOG.info("Server started");
+            } else {
+                LOG.error(result.cause().getMessage());
+            }
+        });
+        */
 
-        vertx.createHttpServer()
-                .requestHandler(router::accept)
-                .listen(8080,
-                        result -> {
-                            if (result.succeeded()) {
-                                future.complete();
-                            } else {
-                                future.fail(result.cause());
-                            }
-                        }
-                );
+        vertx.createHttpServer().requestHandler(router::accept)
+            .listen(8080, result -> {
+                if (result.succeeded()) {
+                    future.complete();
+                } else {
+                    future.fail(result.cause());
+                }
+            }
+        );
     }
 
     private JDBCAuth createJdbcAuthProvider() {

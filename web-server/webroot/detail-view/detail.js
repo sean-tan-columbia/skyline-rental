@@ -8,8 +8,8 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute', 'ngMap'])
         rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         // rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ")
         $scope.rental = rentalObj
-        $scope.latitude = $scope.rental.latitude.toFixed(2);
-        $scope.longitude = $scope.rental.longitude.toFixed(2);
+        $scope.latitude = $scope.rental.latitude.toFixed(3);
+        $scope.longitude = $scope.rental.longitude.toFixed(3);
         $scope.slides = rentalObj.imageIds
         $scope.rentalAge = getRentalAge(parseInt(rentalObj.lastUpdatedTimestamp));
         switch (rentalObj.bedroom) {
@@ -64,13 +64,20 @@ angular.module('skyline-detail', ['ngAnimate', 'ngRoute', 'ngMap'])
         $scope.currentIndex = ($scope.currentIndex > 0) ? --$scope.currentIndex : $scope.slides.length - 1;
     };
     $scope.parseAddress = function () {
-        var _address = $scope.rental.address.split(", ");
         $scope.short_address = "";
-        if (_address.length > 0) {
-            $scope.short_address = $scope.short_address + _address[0];
+        var _address = $scope.rental.address.split(",");
+        var _street = _address[0].trim().split(" ");
+        var reg = /^\d+$/;
+        var street_start_idx = 0;
+        if (_street.length > 1 && reg.test(_street[0])) {
+            street_start_idx = 1;
+        }
+        console.log(street_start_idx);
+        for (i = street_start_idx; i < _street.length; i++) {
+            $scope.short_address = $scope.short_address + " " + _street[i];
         }
         if (_address.length > 1) {
-            $scope.short_address = $scope.short_address + ", " + _address[1];
+            $scope.short_address = $scope.short_address + ", " + _address[1].trim();
         }
     };
     $scope.parseDate = function () {
