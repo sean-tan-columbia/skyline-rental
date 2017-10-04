@@ -3,8 +3,8 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
 .controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window, $element) {
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
-    $scope.markerPink='http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFC0CB';
-    $scope.markerRed='http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FF0000';
+    $scope.markerPink='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFC0CB';
+    $scope.markerRed='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FF0000';
     $scope.rentals = [];
     $scope.currentSlideIndices = [];
     $scope.customMarkerShown = [];

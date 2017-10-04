@@ -173,7 +173,6 @@
     left: 0;
     bottom: 105px;
     opacity: 1.0;
-    outline: none;
 }
 #item-scroll div.item-container div.img-container input.arrow-next {
     overflow:hidden;
@@ -182,7 +181,6 @@
     left: 220px;
     bottom: 105px;
     opacity: 1.0;
-    outline: none;
 }
 #item-scroll div.item-container div.content-container {
     float: left;
