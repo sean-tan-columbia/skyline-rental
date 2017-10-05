@@ -76,21 +76,25 @@ public class UserAuthHandler {
             if (type.equals("c")) {
                 jdbcHandler.insert(user, salt, hash, r3 -> {
                     if (r3.succeeded()) {
-                        context.response().setStatusCode(201).end();
+                        context.response().setStatusCode(201)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
                     } else {
-                        context.response().setStatusCode(500).end(r3.cause().getMessage());
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r3.cause().getMessage());
                     }
                 });
             } else if (type.equals("u")) {
                 jdbcHandler.update(user.getId(), salt, hash, r4 -> {
                     if (r4.succeeded()) {
-                        context.response().setStatusCode(200).end();
+                        context.response().setStatusCode(200)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
                     } else {
-                        context.response().setStatusCode(500).end(r4.cause().getMessage());
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r4.cause().getMessage());
                     }
                 });
             } else {
-                context.response().setStatusCode(400).end();
+                context.response().setStatusCode(400).putHeader("Access-Control-Allow-Origin", "*").end();
             }
         });
     }
@@ -108,9 +112,11 @@ public class UserAuthHandler {
             // Extend the salt;
             redisHandler.put(salt, r1.result(), r2 -> {
                 if (r1.succeeded()) {
-                    context.response().setStatusCode(200).end();
+                    context.response().setStatusCode(200)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 } else {
-                    context.response().setStatusCode(500).end();
+                    context.response().setStatusCode(500)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 }
             });
         });
@@ -132,9 +138,11 @@ public class UserAuthHandler {
             String salt = authProvider.generateSalt();
             redisHandler.put(salt, user, r2 -> {
                 if (r2.succeeded()) {
-                    context.response().setStatusCode(201).end();
+                    context.response().setStatusCode(201)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 } else {
-                    context.response().setStatusCode(500).end();
+                    context.response().setStatusCode(500)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 }
             });
         });
@@ -165,9 +173,11 @@ public class UserAuthHandler {
             User user = new User(id).setName(name).setEmail(email).setPhone(phone).setWechatId(wechat);
             redisHandler.put(salt, user, r2 -> {
                 if (r2.succeeded()) {
-                    context.response().setStatusCode(201).end();
+                    context.response().setStatusCode(201)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 } else {
-                    context.response().setStatusCode(500).end();
+                    context.response().setStatusCode(500)
+                            .putHeader("Access-Control-Allow-Origin", "*").end();
                 }
             });
         });

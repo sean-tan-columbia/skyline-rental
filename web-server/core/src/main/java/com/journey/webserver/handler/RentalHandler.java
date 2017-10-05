@@ -57,9 +57,14 @@ public class RentalHandler {
                 }
                 gcsAuthHandler.getAccessToken(r3 -> {
                     if (r3.succeeded()) {
-                        context.response().setStatusCode(201).end(Json.encodePrettily(r3.result()));
+                        context.response().setStatusCode(201)
+                                .putHeader("content-type", "application/json")
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(Json.encodePrettily(r3.result()));
                     } else {
-                        context.response().setStatusCode(500).end(r3.cause().getMessage());
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(r3.cause().getMessage());
                     }
                 });
             });
@@ -102,7 +107,9 @@ public class RentalHandler {
                                 .putHeader("Access-Control-Allow-Origin", "*")
                                 .end(Json.encodePrettily(r2.result()));
                     } else {
-                        context.response().setStatusCode(500).end(r2.cause().getMessage());
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(r2.cause().getMessage());
                     }
                 });
             }
@@ -150,9 +157,14 @@ public class RentalHandler {
                     }
                     gcsAuthHandler.getAccessToken(r4 -> {
                         if (r4.succeeded()) {
-                            context.response().setStatusCode(200).end(Json.encodePrettily(r4.result()));
+                            context.response().setStatusCode(200)
+                                    .putHeader("content-type", "application/json")
+                                    .putHeader("Access-Control-Allow-Origin", "*")
+                                    .end(Json.encodePrettily(r4.result()));
                         } else {
-                            context.response().setStatusCode(500).end(r4.cause().getMessage());
+                            context.response().setStatusCode(500)
+                                    .putHeader("Access-Control-Allow-Origin", "*")
+                                    .end(r4.cause().getMessage());
                         }
                     });
                 });
@@ -208,9 +220,14 @@ public class RentalHandler {
                     }
                     gcsAuthHandler.getAccessToken(r4 -> {
                         if (r4.succeeded()) {
-                            context.response().setStatusCode(200).end(Json.encodePrettily(r4.result()));
+                            context.response().setStatusCode(200)
+                                    .putHeader("content-type", "application/json")
+                                    .putHeader("Access-Control-Allow-Origin", "*")
+                                    .end(Json.encodePrettily(r4.result()));
                         } else {
-                            context.response().setStatusCode(500).end(r4.cause().getMessage());
+                            context.response().setStatusCode(500)
+                                    .putHeader("Access-Control-Allow-Origin", "*")
+                                    .end(r4.cause().getMessage());
                         }
                     });
                 });
@@ -258,9 +275,14 @@ public class RentalHandler {
         JsonObject searchInfo = context.getBodyAsJson();
         redisHandler.search(searchInfo, r -> {
             if (r.succeeded()) {
-                context.response().setStatusCode(200).end(Json.encodePrettily(r.result()));
+                context.response().setStatusCode(200)
+                        .putHeader("content-type", "application/json")
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(Json.encodePrettily(r.result()));
             } else {
-                context.response().setStatusCode(500).end(r.cause().getMessage());
+                context.response().setStatusCode(500)
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(r.cause().getMessage());
             }
         });
     }
@@ -269,9 +291,14 @@ public class RentalHandler {
         JsonObject searchInfo = context.getBodyAsJson();
         redisHandler.searchLocation(searchInfo, r -> {
             if (r.succeeded()) {
-                context.response().setStatusCode(200).end(Json.encodePrettily(r.result()));
+                context.response().setStatusCode(200)
+                        .putHeader("content-type", "application/json")
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(Json.encodePrettily(r.result()));
             } else {
-                context.response().setStatusCode(500).end(r.cause().getMessage());
+                context.response().setStatusCode(500)
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(r.cause().getMessage());
             }
         });
     }
@@ -281,9 +308,14 @@ public class RentalHandler {
         Boolean order = context.request().getParam("order").equals("asc");
         redisHandler.sort(sorter, order, r -> {
             if (r.succeeded()) {
-                context.response().setStatusCode(200).end(Json.encodePrettily(r.result()));
+                context.response().setStatusCode(200)
+                        .putHeader("content-type", "application/json")
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(Json.encodePrettily(r.result()));
             } else {
-                context.response().setStatusCode(500).end(r.cause().getMessage());
+                context.response().setStatusCode(500)
+                        .putHeader("Access-Control-Allow-Origin", "*")
+                        .end(r.cause().getMessage());
             }
         });
     }

@@ -43,9 +43,14 @@ public class UserHandler {
                 User poster = r2.result();
                 redisHandler.put(poster, r3 -> {
                     if (r3.succeeded()) {
-                        context.response().setStatusCode(200).end(Json.encodePrettily(poster));
+                        context.response().setStatusCode(200)
+                                .putHeader("content-type", "application/json")
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(Json.encodePrettily(poster));
                     } else {
-                        context.response().setStatusCode(500).end(r3.cause().getMessage());
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .end(r3.cause().getMessage());
                     }
                 });
             });
@@ -104,9 +109,13 @@ public class UserHandler {
             }
             this.deleteUserCache(posterId, r2 -> {
                 if (r2.succeeded()) {
-                    context.response().setStatusCode(200).end();
+                    context.response().setStatusCode(200)
+                            .putHeader("Access-Control-Allow-Origin", "*")
+                            .end();
                 } else {
-                    context.response().setStatusCode(500).end(r2.cause().getMessage());
+                    context.response().setStatusCode(500)
+                            .putHeader("Access-Control-Allow-Origin", "*")
+                            .end(r2.cause().getMessage());
                 }
             });
         });

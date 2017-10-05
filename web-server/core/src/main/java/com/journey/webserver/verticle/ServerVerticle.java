@@ -6,6 +6,7 @@ import com.journey.webserver.sstore.RedisSessionStore;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -14,6 +15,7 @@ import io.vertx.core.net.JksOptions;
 import io.vertx.ext.auth.jdbc.JDBCAuth;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.*;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
@@ -73,10 +75,11 @@ public class ServerVerticle extends AbstractVerticle {
         this.redirectAuthHandler = RedirectAuthHandler.create(jdbcAuthProvider, "/login-view/login.html");
 
         Router router = createRouter();
+
         /*
         vertx.createHttpServer(new HttpServerOptions().setSsl(true).setKeyStoreOptions(new JksOptions()
-                .setPath("/absolute_path/keystore.jks")
-                .setPassword("")
+                .setPath("/Users/jtan/IdeaProjects/Journey/ssl/journey-rentals-dev.jks")
+                .setPassword("jtanFoundJourney17!")
         )).requestHandler(router::accept).listen(8443, result -> {
             if (result.succeeded()) {
                 LOG.info("Server started");
@@ -104,9 +107,21 @@ public class ServerVerticle extends AbstractVerticle {
         return authProvider;
     }
 
+    private void redirectHttpToHttps(RoutingContext context) {
+        HttpServerRequest request = context.request();
+        if (request.getHeader("X-Forwarded-Proto").equals("http")) {
+            context.response().setStatusCode(302)
+                    .putHeader("location", request.absoluteURI().replace("http://", "https://"))
+                    .end();
+        } else {
+            context.next();
+        }
+    }
+
     private Router createRouter() {
         Router router = Router.router(vertx);
-        // Auth logic
+
+        router.route().handler(this::redirectHttpToHttps);
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
 
