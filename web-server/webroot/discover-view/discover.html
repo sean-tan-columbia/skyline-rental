@@ -24,6 +24,8 @@
                        component-restrictions="{country:'us'}"
                        types="['establishment']"
                        on-place-changed="placeChanged()">
+                <div ng-click="clearPlaceAutoComplete()"
+                     style="display:inline;float:right;font-size:24px;color:grey;height:100%;cursor:pointer;padding-top:3px;padding-right:10px;">&times</div>
             </div>
             <div id="header-menu">
                 <ul>
@@ -192,7 +194,7 @@
                     </ul>
                 </div>
                 <div style="margin-top:5px;display:block;">
-                    <p style="display:inline;margin-left:40%;font-size:16px;color:#4169E1;">
+                    <p style="display:inline;margin-left:40%;font-size:16px;color:#1E90FF;">
                         {{rentalStartIndex}} - {{rentalEndIndex}} of {{totalIds}} Rentals
                     </p>
                 </div>

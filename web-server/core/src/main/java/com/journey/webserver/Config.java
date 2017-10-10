@@ -19,11 +19,13 @@ public class Config {
     private final String postgresDriver;
     private final String googleApiClientId;
     private final String googleApiClientSecret;
-    private final String googleApiScope;
+    private final String[] googleApiScopes;
     private final String googleApiCredPath;
+    private final String googleApiCredUser;
     private final Long googleApiTokenTTL;
     private final Long sessionRetryTimeout;
     private final Long sessionTimeout;
+    private final String serverHostName;
 
     public static Config getInstance(String env) throws IOException {
         if (instance == null) {
@@ -50,11 +52,14 @@ public class Config {
         this.postgresDriver = properties.getProperty("database.postgres.driver");
         this.googleApiClientId = properties.getProperty("auth.googleapi.client.id");
         this.googleApiClientSecret = properties.getProperty("auth.googleapi.client.secret");
-        this.googleApiScope = properties.getProperty("auth.googleapi.client.scope");
+        this.googleApiScopes = properties.getProperty("auth.googleapi.client.scopes").split(",");
         this.googleApiCredPath = properties.getProperty("auth.googleapi.cred.path");
+        this.googleApiCredUser = properties.getProperty("auth.googleapi.cred.user");
+
         this.googleApiTokenTTL = Long.parseLong(properties.getProperty("auth.googleapi.token.ttl"));
         this.sessionTimeout = Long.parseLong(properties.getProperty("server.session.timeout"));
         this.sessionRetryTimeout = Long.parseLong(properties.getProperty("server.session.retry.timeout"));
+        this.serverHostName = properties.getProperty("server.host.name");
     }
 
     public String getRedisHost() {
@@ -93,12 +98,16 @@ public class Config {
         return googleApiClientSecret;
     }
 
-    public String getGoogleApiScope() {
-        return googleApiScope;
+    public String[] getGoogleApiScopes() {
+        return googleApiScopes;
     }
 
     public String getGoogleApiCredPath() {
         return googleApiCredPath;
+    }
+
+    public String getGoogleApiCredUser() {
+        return googleApiCredUser;
     }
 
     public Long getGoogleApiTokenTTL() {
@@ -111,5 +120,9 @@ public class Config {
 
     public Long getSessionTimeout() {
         return sessionTimeout;
+    }
+
+    public String getServerHostName() {
+        return this.serverHostName;
     }
 }

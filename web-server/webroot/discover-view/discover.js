@@ -10,20 +10,17 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
     $scope.pageSize = 20;
-    $scope.rentalStartIndex = 1;
     $scope.searchParams = {};
     $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
     $scope.isSingleLoc = false;
-//    $http.get(config.serverUrl + "/api/public/discover/lastUpdatedTimestamp/desc").then(function(r1) {
-//        rentalIds = r1.data;
-//        $scope.rentalEndIndex = rentalIds.length > 20 ? 20 : rentalIds.length;
-//        $scope.getRentalsWithIds(rentalIds);
-//    });
+
     $scope.getRentalsWithIds = function(rentalIds) {
-        $scope.rentalEndIndex = rentalIds.length > 20 ? 20 : rentalIds.length;
+        $scope.rentalStartIndex = rentalIds.length > 0 ? 1 : 0;
+        $scope.rentalEndIndex = rentalIds.length > $scope.pageSize ? $scope.pageSize : rentalIds.length;
         $scope.rentalIds = rentalIds;
         $scope.totalIds = rentalIds.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         $scope.pages = Math.ceil($scope.rentalIds.length / $scope.pageSize);
+        $scope.pages = $scope.pages > 0 ? $scope.pages : 1;
         $scope.rentalNavAutoWidth = (0.3 + 0.05 * ($scope.pages - 1)) * 100 + "%"; // Calculate the auto nav bar width;
         $scope.newPages = $scope.pages > 5 ? 5 : $scope.pages;
         $scope.selectedPage = 1;
@@ -45,6 +42,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     };
     $scope.setData = function () {
         $scope.rentalStartIndex = $scope.pageSize * ($scope.selectedPage - 1) + 1;
+        console.log($scope.rentalStartIndex);
         $scope.rentalEndIndex = $scope.selectedPage * $scope.pageSize + 1;
         var selectedRentalIds = $scope.rentalIds.slice(($scope.pageSize * ($scope.selectedPage - 1)), ($scope.selectedPage * $scope.pageSize));
         $scope.httpGetRentals(selectedRentalIds);
@@ -55,11 +53,11 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.selectPage = function (page) {
         if (page < 1 || page > $scope.pages) return;
         if (page > 2) {
-            var newpageList = [];
+            var newPageList = [];
             for (var i = (page - 3) ; i < ((page + 2) > $scope.pages ? $scope.pages : (page + 2)) ; i++) {
-                newpageList.push(i + 1);
+                newPageList.push(i + 1);
             }
-            $scope.pageList = newpageList;
+            $scope.pageList = newPageList;
         }
         $scope.selectedPage = page;
         $scope.setData();
@@ -277,14 +275,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             return;
         }
         $scope.isSingleLoc = false;
-//        clearTimeout($scope.mapTimeout);
-//        $scope.mapTimeout = setTimeout(
-//            function() {
-//                $scope.saveSearchParams();
-//                console.log("save")
-//                console.log($scope.mapParamStack);
-//            },
-//        3000);
         $scope.saveSearchParams();
         $scope.search.showLiked = false;
         var center = $scope.map.getCenter();
@@ -342,6 +332,12 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.map.setCenter(prevMapParams['map_center']);
         $scope.map.setZoom(prevMapParams['map_zoom']);
     };
+    $scope.clearPlaceAutoComplete = function() {
+        $scope.targetAddress = undefined;
+        $scope.map.setCenter({'lat':40.785, 'lng':-73.968});
+        $scope.map.setZoom(12);
+        $scope.mapParamStack = [];
+    }
     /* <- Search */
     NgMap.getMap('ng-map').then(function(map) {
         // google.maps.event.trigger(map, 'resize');

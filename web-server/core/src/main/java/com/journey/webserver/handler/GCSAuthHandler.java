@@ -1,11 +1,6 @@
 package com.journey.webserver.handler;
 
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson.JacksonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.common.collect.Lists;
 import com.journey.webserver.Config;
 import com.journey.webserver.model.GCSAuth;
 import io.vertx.core.AsyncResult;
@@ -18,7 +13,6 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.redis.RedisClient;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -28,7 +22,6 @@ import java.util.Arrays;
 public class GCSAuthHandler {
 
     private final static Logger LOG = LoggerFactory.getLogger(GCSAuthHandler.class);
-    private static final String USER_ID = "sysops";
     private static final String GCS_TOKEN_KEY_BASE = "auth.gcs.token:";
     private final String GCS_TOKEN_KEY;
     private final Vertx vertx;
@@ -36,35 +29,12 @@ public class GCSAuthHandler {
     private final RedisClient redisClient;
     private final Long accessTokenTTL;
 
-    public GCSAuthHandler(Vertx vertx, RedisClient redisClient, Config config) throws Exception {
+    public GCSAuthHandler(Vertx vertx, RedisClient redisClient, Credential credential, Config config) throws Exception {
         this.vertx = vertx;
         this.redisClient = redisClient;
-        GoogleAuthorizationCodeFlow authorizationFlow = new GoogleAuthorizationCodeFlow.Builder(
-                new NetHttpTransport(),
-                new JacksonFactory(),
-                config.getGoogleApiClientId(),
-                config.getGoogleApiClientSecret(),
-                Lists.newArrayList(config.getGoogleApiScope()))
-                .setDataStoreFactory(new FileDataStoreFactory(new File(config.getGoogleApiCredPath())))
-                .setAccessType("offline")
-                .setApprovalPrompt("force")
-                .build();
         this.GCS_TOKEN_KEY = GCS_TOKEN_KEY_BASE + config.getGoogleApiClientId();
         this.accessTokenTTL = config.getGoogleApiTokenTTL(); // seconds
-        this.credential = authorizationFlow.loadCredential(USER_ID);
-        if (this.credential == null) {
-            throw new Exception("Failed to load credential!");
-        }
-    }
-
-    private void setAccessTokenTTL() {
-        redisClient.expire(GCS_TOKEN_KEY, accessTokenTTL, r -> {
-            if (r.succeeded() && r.result() > 0) {
-                LOG.info("New GCS Access Token will expire in " + accessTokenTTL.toString() + " secs");
-            } else {
-                LOG.error("Failed to set new token TTL!");
-            }
-        });
+        this.credential = credential;
     }
 
     private void refreshAccessToken(Handler<AsyncResult<String>> resultHandler) {

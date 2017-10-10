@@ -17,11 +17,16 @@ public class UserAuthHandler {
     private final JDBCAuth authProvider;
     private final UserAuthJdbcHandler jdbcHandler;
     private final UserAuthRedisHandler redisHandler;
+    private final GMailServiceHandler mailServiceHandler;
 
-    public UserAuthHandler(UserAuthRedisHandler redisHandler, UserAuthJdbcHandler jdbcHandler, JDBCAuth jdbcAuth) {
+    public UserAuthHandler(UserAuthRedisHandler redisHandler,
+                           UserAuthJdbcHandler jdbcHandler,
+                           GMailServiceHandler mailServiceHandler,
+                           JDBCAuth jdbcAuth) {
         this.redisHandler = redisHandler;
         this.jdbcHandler = jdbcHandler;
         this.authProvider = jdbcAuth;
+        this.mailServiceHandler = mailServiceHandler;
     }
 
     public void authenticate(RoutingContext context) {
@@ -137,13 +142,19 @@ public class UserAuthHandler {
             User user = r1.result();
             String salt = authProvider.generateSalt();
             redisHandler.put(salt, user, r2 -> {
-                if (r2.succeeded()) {
-                    context.response().setStatusCode(201)
-                            .putHeader("Access-Control-Allow-Origin", "*").end();
-                } else {
-                    context.response().setStatusCode(500)
-                            .putHeader("Access-Control-Allow-Origin", "*").end();
+                if (r2.failed()) {
+                    context.response().setStatusCode(500).end();
+                    return;
                 }
+                mailServiceHandler.sendResetEmail(email, user, salt, r3 -> {
+                    if (r3.succeeded()) {
+                        context.response().setStatusCode(201)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                    } else {
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                    }
+                });
             });
         });
     }
@@ -172,13 +183,19 @@ public class UserAuthHandler {
             String salt = authProvider.generateSalt();
             User user = new User(id).setName(name).setEmail(email).setPhone(phone).setWechatId(wechat);
             redisHandler.put(salt, user, r2 -> {
-                if (r2.succeeded()) {
-                    context.response().setStatusCode(201)
-                            .putHeader("Access-Control-Allow-Origin", "*").end();
-                } else {
-                    context.response().setStatusCode(500)
-                            .putHeader("Access-Control-Allow-Origin", "*").end();
+                if (r2.failed()) {
+                    context.response().setStatusCode(500).end();
+                    return;
                 }
+                mailServiceHandler.sendRegisterMail(email, user, salt, r3 -> {
+                    if (r3.succeeded()) {
+                        context.response().setStatusCode(201)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                    } else {
+                        context.response().setStatusCode(500)
+                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                    }
+                });
             });
         });
     }

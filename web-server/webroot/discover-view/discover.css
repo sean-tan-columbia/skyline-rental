@@ -19,28 +19,29 @@
     color: white;
 }
 #header-search {
-    display:inline;
     margin-top:7px;
-    margin-left:10px;
-    height:32px;
-    width:40%;
+    margin-left:0px;
+    height:36px;
+    width:42%;
     float: left;
+    background-color: #6495ED;
+    outline: none;
+    transition: background-color 0.5s ease;
+    transition: background-color 0.5s ease-out;
+}
+#header-search:hover {
+    background-color: white;
+    outline: none;
 }
 #header-search input {
     background: url(../asset/image/search_glass_20.png) no-repeat scroll 7px 7px;
-    height:100%;
-    width:100%;
+    height:34px;
+    width:85%;
     border-radius:1px;
     border-width:0px;
-    padding:2px;
-    padding-left:30px;
-    background-color: #6495ED;
-    transition: background-color 0.5s ease;
-}
-#header-search input:focus {
-    background-color: white;
+    padding-left:35px;
+    background-color: transparent;
     outline: none;
-    transition: background-color 0.5s ease;
 }
 #header-down {
     float: left;
@@ -59,7 +60,7 @@
     padding-top: 10px;
 }
 #header-menu ul {
-    margin-left: 20px;
+    margin-left: 0px;
 }
 #header-menu ul li {
     display: inline;
@@ -89,6 +90,7 @@
     color: #4169E1;
     margin-left: 0px;
     transition: all 0.3s ease 0s;
+    outline: none;
 }
 #submit-search:hover {
     background-color: #4169E1;
@@ -104,6 +106,7 @@
     font-size: 15px;
     color: #4169E1;
     transition: all 0.3s ease 0s;
+    outline: none;
 }
 #submit-clear:hover {
     background-color: #4169E1;
@@ -270,7 +273,7 @@
 }
 #navi ul li a.page {
     display: block;
-    color: #4169E1;
+    color: #1E90FF;
     text-align: center;
     text-decoration: none;
     font-size: 17px;
@@ -281,8 +284,8 @@
 }
 #navi .active {
     color: white;
-    border-bottom-color: #4169E1;
-    border-bottom-width: 2px;
+    border-bottom-color: #1E90FF;
+    border-bottom-width: 1.5px;
     border-bottom-style: solid;
 }
 #ng-map div.custom-marker-container {

@@ -1,5 +1,11 @@
 package com.journey.webserver.verticle;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.common.collect.Lists;
 import com.journey.webserver.Config;
 import com.journey.webserver.handler.*;
 import com.journey.webserver.sstore.RedisSessionStore;
@@ -20,6 +26,7 @@ import io.vertx.ext.web.handler.*;
 import io.vertx.redis.RedisClient;
 import io.vertx.redis.RedisOptions;
 
+import java.io.File;
 import java.util.Properties;
 
 /**
@@ -60,15 +67,18 @@ public class ServerVerticle extends AbstractVerticle {
         UserJdbcHandler userJdbcHandler = new UserJdbcHandler(this.jdbcClient);
         this.userHandler = new UserHandler(userRedisHandler, userJdbcHandler);
 
+        Credential credential = getGoogleApisCredential(config);
+        GMailServiceHandler mailServiceHandler = new GMailServiceHandler(vertx, credential, config);
+        GCSAuthHandler gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, credential, config);
+
         RentalRedisHandler rentalRedisHandler = new RentalRedisHandler(this.redisClient);
         RentalJdbcHandler rentalJdbcHandler = new RentalJdbcHandler(this.jdbcClient);
-        GCSAuthHandler gcsAuthHandler = new GCSAuthHandler(vertx, redisClient, config);
         this.rentalHandler = new RentalHandler(rentalRedisHandler, rentalJdbcHandler, gcsAuthHandler, userHandler);
 
         UserAuthRedisHandler userAuthRedisHandler = new UserAuthRedisHandler(this.redisClient);
         UserAuthJdbcHandler userAuthJdbcHandler = new UserAuthJdbcHandler(this.jdbcClient);
         this.jdbcAuthProvider = createJdbcAuthProvider();
-        this.userAuthHandler = new UserAuthHandler(userAuthRedisHandler, userAuthJdbcHandler, this.jdbcAuthProvider);
+        this.userAuthHandler = new UserAuthHandler(userAuthRedisHandler, userAuthJdbcHandler, mailServiceHandler, this.jdbcAuthProvider);
 
         this.sessionHandler = SessionHandler.create(RedisSessionStore.create(vertx, redisClient, config.getSessionRetryTimeout())).setSessionTimeout(config.getSessionTimeout());
         this.userSessionHandler = UserSessionHandler.create(jdbcAuthProvider);
@@ -100,6 +110,24 @@ public class ServerVerticle extends AbstractVerticle {
         );
     }
 
+    private Credential getGoogleApisCredential(Config config) throws Exception {
+        GoogleAuthorizationCodeFlow authorizationFlow = new GoogleAuthorizationCodeFlow.Builder(
+                new NetHttpTransport(),
+                new JacksonFactory(),
+                config.getGoogleApiClientId(),
+                config.getGoogleApiClientSecret(),
+                Lists.newArrayList(config.getGoogleApiScopes()))
+                .setDataStoreFactory(new FileDataStoreFactory(new File(config.getGoogleApiCredPath())))
+                .setAccessType("offline")
+                .setApprovalPrompt("force")
+                .build();
+        Credential credential = authorizationFlow.loadCredential(config.getGoogleApiCredUser());
+        if (credential == null) {
+            throw new Exception("Failed to load credential!");
+        }
+        return credential;
+    }
+
     private JDBCAuth createJdbcAuthProvider() {
         JDBCAuth authProvider = JDBCAuth.create(vertx, this.jdbcClient);
         authProvider.setAuthenticationQuery("SELECT PASSWORD, PASSWORD_SALT FROM eventbus.USERS WHERE ID=?");
@@ -109,7 +137,8 @@ public class ServerVerticle extends AbstractVerticle {
 
     private void redirectHttpToHttps(RoutingContext context) {
         HttpServerRequest request = context.request();
-        if (request.getHeader("X-Forwarded-Proto").equals("http")) {
+        if (request.headers().contains("X-Forwarded-Proto")
+                && request.getHeader("X-Forwarded-Proto").equals("http")) {
             context.response().setStatusCode(302)
                     .putHeader("location", request.absoluteURI().replace("http://", "https://"))
                     .end();

@@ -67,7 +67,10 @@
            types="{{types}}"
            on-place-changed="placeChanged()"
            placeholder="Enter Address (Exact Address Will Be Hidden)">
-    <ng-map center="[40.785,-73.968]" zoom="13" street-view-control="false"
+    <ng-map center="[40.785,-73.968]"
+            zoom="13"
+            map-type-control="false"
+            street-view-control="false"
             style="box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);margin-left:1px;">
         <marker position="{{lat}},{{lng}}" ng-if="markerShown" ng-init="markerShown=false"></marker>
     </ng-map>
