@@ -16,12 +16,9 @@ import java.io.InputStreamReader;
 
 public class GoogleApisStoreCredUtil {
 
-    private static final String REDIRECT_URL_DEV = "http://localhost:8080";
-    private static final String REDIRECT_URL_PROD = "https://journey.rentals";
-
     public void generateGoogleApisStoredCred(String env) throws Exception {
-        String redirectUrl = env.equals("prod") ? REDIRECT_URL_PROD : REDIRECT_URL_DEV;
         Config config = Config.getInstance(env);
+        String redirectUrl = config.getServerHostName();
         System.out.println("ClientId: " + config.getGoogleApiClientId());
         System.out.println("ClientSecret: " + config.getGoogleApiClientSecret());
         System.out.println("CredPath: " + config.getGoogleApiCredPath());

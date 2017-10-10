@@ -43,6 +43,7 @@
 #img-upload {
     width: 110px;
     height: 110px;
+    margin-top:1px;
     background: url(../asset/image/image-add-button-128.png);
     background-size: 100%;
     overflow: hidden;
