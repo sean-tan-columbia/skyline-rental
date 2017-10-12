@@ -14,6 +14,21 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
     $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
     $scope.isSingleLoc = false;
 
+    $scope.orderBy = 'lastUpdatedTimestamp';
+    $scope.orderAscending = -1;
+    $scope.orderByFunc = function(rental) {
+        switch($scope.orderBy) {
+            case 'lastUpdatedTimestamp':
+                return $scope.orderAscending * rental.lastUpdatedTimestamp;
+                break;
+            case 'price':
+                return $scope.orderAscending * parseInt(rental.price);
+                break;
+            default:
+                return $scope.orderAscending * rental.lastUpdatedTimestamp;
+                break;
+        }
+    }
     $scope.getRentalsWithIds = function(rentalIds) {
         $scope.rentalStartIndex = rentalIds.length > 0 ? 1 : 0;
         $scope.rentalEndIndex = rentalIds.length > $scope.pageSize ? $scope.pageSize : rentalIds.length;
@@ -197,18 +212,26 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             case "latest":
                 $scope.searchParams['primary'] = "last_updated_timestamp";
                 $scope.searchParams['order'] = "desc";
+                $scope.orderBy = 'lastUpdatedTimestamp';
+                $scope.orderAscending = -1;
                 break;
             case "expensive":
                 $scope.searchParams['primary'] = "price";
                 $scope.searchParams['order'] = "desc";
+                $scope.orderBy = 'price';
+                $scope.orderAscending = -1;
                 break;
             case "cheap":
                 $scope.searchParams['primary'] = "price";
                 $scope.searchParams['order'] = "asc";
+                $scope.orderBy = 'price';
+                $scope.orderAscending = 1;
                 break;
             default:
                 $scope.searchParams['primary'] = "last_updated_timestamp";
                 $scope.searchParams['order'] = "desc";
+                $scope.orderBy = 'lastUpdatedTimestamp';
+                $scope.orderAscending = -1;
                 break;
         };
         $scope.search();

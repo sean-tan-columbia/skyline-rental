@@ -25,7 +25,7 @@
                        types="['establishment']"
                        on-place-changed="placeChanged()">
                 <div ng-click="clearPlaceAutoComplete()"
-                     style="display:inline;float:right;font-size:24px;color:grey;height:100%;cursor:pointer;padding-top:3px;padding-right:10px;">&times</div>
+                     style="display:inline;float:right;font-size:24px;color:grey;height:100%;cursor:pointer;padding-top:3px;padding-right:10px;outline:none;">&times</div>
             </div>
             <div id="header-menu">
                 <ul>
@@ -138,7 +138,7 @@
 
             <div id="item-scroll">
                 <div class="item-container"
-                     ng-repeat="rental in rentals"
+                     ng-repeat="rental in rentals | orderBy : orderByFunc"
                      ng-init="rental_index=$index"
                      ng-mouseenter="toggleMarkerColor($index, 'red')"
                      ng-mouseleave="toggleMarkerColor($index, 'pink')">
