@@ -149,10 +149,10 @@ public class UserAuthHandler {
                 mailServiceHandler.sendResetEmail(email, user, salt, r3 -> {
                     if (r3.succeeded()) {
                         context.response().setStatusCode(201)
-                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r3.result());
                     } else {
                         context.response().setStatusCode(500)
-                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r3.cause().getMessage());
                     }
                 });
             });
@@ -190,10 +190,10 @@ public class UserAuthHandler {
                 mailServiceHandler.sendRegisterMail(email, user, salt, r3 -> {
                     if (r3.succeeded()) {
                         context.response().setStatusCode(201)
-                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r3.result());
                     } else {
                         context.response().setStatusCode(500)
-                                .putHeader("Access-Control-Allow-Origin", "*").end();
+                                .putHeader("Access-Control-Allow-Origin", "*").end(r3.cause().getMessage());
                     }
                 });
             });

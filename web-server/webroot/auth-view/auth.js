@@ -44,11 +44,13 @@ angular.module('skyline-auth', ['ngRoute'])
                     url: config.serverUrl + '/api/public/user/register',
                     data: data})
             .then(function successCallback(response) {
+                console.log(response.status);
                 $scope.signUpSuccessInfo = "You'll receive an email to set password shortly, please check it and continue.";
                 $scope.signUpSuccessShow = true;
                 $scope.signUpFailureShow = false;
                 $scope.signUpDisable = true;
             }, function errorCallback(response) {
+                console.log(response.status);
                 $scope.signUpSuccessShow = false;
                 if (response.status == 400) {
                     $scope.signUpFailureInfo = 'This email has been registered.';
@@ -71,6 +73,7 @@ angular.module('skyline-auth', ['ngRoute'])
                 url: config.serverUrl + '/api/public/user/reset',
                 data: data})
         .then(function successCallback(response) {
+            console.log(response.status);
             $scope.resetSuccessInfo = "You'll receive an email to set password shortly, please check it and continue.";
             $scope.resetSuccessShow = true;
             $scope.resetFailureShow = false;
@@ -81,6 +84,7 @@ angular.module('skyline-auth', ['ngRoute'])
                 $scope.resetFailureInfo = 'This email has not been registered yet.';
                 $scope.resetFailureShow = true;
             } else {
+                console.log(response.status);
                 $scope.resetFailureInfo = 'Internal errors, please try again later.';
                 $scope.resetFailureShow = true;
             }

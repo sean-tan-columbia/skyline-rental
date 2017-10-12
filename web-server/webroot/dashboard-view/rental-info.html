@@ -9,7 +9,7 @@
     <div id="img-display" ng-repeat='image in images'>
         <img data-ng-src={{image.base64}} ng-click="removeImage($index)">
     </div>
-    <div id="img-upload">
+    <div id="img-upload" ng-if="images.length < 10">
         <input type='file' file-model="myFile">
     </div>
 </div>
