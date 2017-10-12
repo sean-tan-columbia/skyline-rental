@@ -60,7 +60,7 @@ public class GoogleApisStoreCredUtil {
     public static void main(String[] args) {
         try {
             GoogleApisStoreCredUtil googleApisStoreCredUtil = new GoogleApisStoreCredUtil();
-            googleApisStoreCredUtil.generateGoogleApisStoredCred("dev");
+            googleApisStoreCredUtil.generateGoogleApisStoredCred(args[0]);
         } catch (Exception e) {
             e.printStackTrace();
         }
