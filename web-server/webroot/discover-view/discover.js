@@ -1,19 +1,18 @@
 angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessages', 'ngCookies'])
 
-.controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window, $element) {
+.controller('rentalDiscoverController', function ($scope, $http, $routeParams, $cookies, NgMap, config, $window, $element, $q) {
     $scope.googleCloudStorageBaseUrl = config.googleCloudStorageBaseUrl;
     $scope.googleCloudStorageBucket = config.googleCloudStorageBucket;
     $scope.markerPink='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FFC0CB';
     $scope.markerRed='https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|FF0000';
+    $scope.pageSize = 20;
     $scope.rentals = [];
     $scope.currentSlideIndices = [];
     $scope.customMarkerShown = [];
     $scope.markerIcons = [];
-    $scope.pageSize = 20;
     $scope.searchParams = {};
     $scope.mapParamStack = [{'map_center': {'lat':40.785, 'lng':-73.968}, 'map_zoom':12}];
     $scope.isSingleLoc = false;
-
     $scope.orderBy = 'lastUpdatedTimestamp';
     $scope.orderAscending = -1;
     $scope.orderByFunc = function(rental) {
@@ -85,22 +84,27 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
         $scope.selectPage($scope.selectedPage + 1);
     };
     $scope.httpGetRentals = function(selectedRentalIds) {
-        $scope.rentals = [];
-        $scope.currentSlideIndices = [];
-        likedRentalSet = $scope.getLikedRentalSet();
-        console.log($scope.search.showLiked);
+        // This function has been called twice when the home page is init, because both of the map and sorter init
+        var promises = [];
         for (i = 0; i < selectedRentalIds.length; i++) {
             if ($scope.search.showLiked && !likedRentalSet.has(selectedRentalIds[i])) {
                 continue;
             }
-            $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
-            .then(function(r2) {
-                rentalObj = r2.data;
-                // console.log(rentalObj);
+            var p = $http.get(config.serverUrl + "/api/public/rental/" + selectedRentalIds[i])
+            promises.push(p);
+        }
+        $scope.rentals = [];
+        $scope.currentSlideIndices = [];
+        $scope.customMarkerShown = [];
+        $scope.markerIcons = [];
+        likedRentalSet = $scope.getLikedRentalSet();
+        $q.all(promises).then(function(results){
+            for (i = 0; i < results.length; i++) {
+                // console.log(results[i].data)
+                rentalObj = results[i].data;
                 if (rentalObj.id == undefined) {
                     return;
                 }
-                // rentalObj.imageIds = rentalObj.imageIds.substring(1, rentalObj.imageIds.length-1).split(", ");
                 rentalObj.price = Math.floor(rentalObj.price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 rentalObj.moveInDate = $scope.parseDate(rentalObj.startDate);
                 rentalObj.isLiked = likedRentalSet.has(rentalObj.id);
@@ -138,15 +142,12 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                         rentalObj.bathroom = "3 Bathroom";
                         break;
                 }
-                // console.log(rentalObj);
                 $scope.rentals.push(rentalObj);
                 $scope.currentSlideIndices.push(0);
                 $scope.customMarkerShown.push(false);
                 $scope.markerIcons.push($scope.markerPink);
-                $scope.parseDate();
-            })
-        }
-        // console.log(selectedRentalIds);
+            }
+        })
     };
     $scope.parseDate = function (unix_time) {
         var _date = new Date(parseInt(unix_time));
@@ -170,7 +171,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             rental_id = $scope.rentals[rental_index].id;
             likedRentalSet.add(rental_id);
         }
-        console.log(rental_index);
+        // console.log(rental_index);
         now = new Date();
         $cookies.put('liked_rentals',
                      JSON.stringify(Array.from(likedRentalSet)),
@@ -187,7 +188,7 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 likedRentalSet.delete(rental_id);
             }
         }
-        console.log(rental_index);
+        // console.log(rental_index);
         now = new Date();
         $cookies.put('liked_rentals',
                      JSON.stringify(Array.from(likedRentalSet)),
