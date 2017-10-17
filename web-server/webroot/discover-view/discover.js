@@ -170,8 +170,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
             rental_id = $scope.rentals[rental_index].id;
             likedRentalSet.add(rental_id);
         }
-        console.log(rental_index);
-        console.log(likedRentalSet);
         now = new Date();
         $cookies.put('liked_rentals',
                      JSON.stringify(Array.from(likedRentalSet)),
@@ -188,8 +186,6 @@ angular.module('skyline-discover', ['ngRoute', 'ngMap', 'ngMaterial', 'ngMessage
                 likedRentalSet.delete(rental_id);
             }
         }
-        console.log(rental_index);
-        console.log(likedRentalSet);
         now = new Date();
         $cookies.put('liked_rentals',
                      JSON.stringify(Array.from(likedRentalSet)),
