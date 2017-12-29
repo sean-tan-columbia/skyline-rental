@@ -150,6 +150,7 @@ public class ServerVerticle extends AbstractVerticle {
     private Router createRouter() {
         Router router = Router.router(vertx);
 
+        router.route("/.well-known/acme-challenge/*").handler(StaticHandler.create().setWebRoot("../../webroot"));
         router.route().handler(this::redirectHttpToHttps);
         router.route().handler(CookieHandler.create());
         router.route().handler(BodyHandler.create());
